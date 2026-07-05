@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda de Camisetas Personalizadas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 font-sans text-gray-900">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-indigo-600 tracking-tight">👕 Camisetas PRO</h1>
+            <button onclick="toggleCarrito()" class="relative bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-indigo-200 transition">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Carrito</span>
+                <span id="cart-count" class="bg-indigo-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center absolute -top-2 -right-2">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="bg-gradient-to-r text-center from-indigo-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white mb-10 shadow-md">
+            <h2 class="text-3xl md:text-5xl font-extrabold mb-4">Camisetas Estampadas Premium</h2>
+            <p class="text-indigo-100 text-lg max-w-xl mx-auto">Elige tu diseño, selecciona tu talla y color ideal. ¡Envíos a todo el país!</p>
+        </div>
+
+        <h3 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span class="w-2 h-6 bg-indigo-600 rounded-full"></span> Nuestro Catálogo
+        </h3>
+
+        <div id="contenedor-productos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="text-center col-span-full py-12 text-gray-500">
+                <i class="fas fa-spinner fa-spin text-3xl text-indigo-600 mb-3"></i>
+                <p>Cargando espectaculares diseños desde Google Sheets...</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="carrito-panel" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex justify-end">
+        <div class="bg-white w-full max-w-md h-full flex flex-col shadow-2xl p-6 overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b">
+                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-shopping-bag text-indigo-600"></i> Tu Pedido</h3>
+                <button onclick="toggleCarrito()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+
+            <div id="carrito-items" class="flex-1 divide-y overflow-y-auto my-4 pr-1">
+                <p class="text-center text-gray-400 py-8">El carrito está vacío.</p>
+            </div>
+
+            <div class="border-t pt-4 space-y-4">
+                <div class="flex justify-between text-lg font-bold">
+                    <span>Total Productos:</span>
+                    <span id="cart-total">$0</span>
+                </div>
+
+                <hr>
+
+                <form id="checkout-form" onsubmit="procesarCompra(event)" class="space-y-3">
+                    <h4 class="font-bold text-sm text-gray-700 uppercase tracking-wider">Datos de Entrega</h4>
+                    <input type="text" id="nombre" placeholder="Nombre completo" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
+                    <input type="text" id="direccion" placeholder="Dirección de residencia" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="ciudad" placeholder="Ciudad" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
+                        <input type="text" id="departamento" placeholder="Departamento" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
+                    </div>
+                    <input type="tel" id="whatsapp" placeholder="Número de WhatsApp" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
+                    
+                    <label class="block text-xs font-bold text-gray-600 mt-2">MÉtodo de pago</label>
+                    <select id="pago" class="w-full p-2.5 border rounded-lg bg-white text-sm outline-none">
+                        <option value="Transferencia Bancaria">Transferencia Bancaria (Nequi/Daviplata)</option>
+                        <option value="Pago contra entrega">Pago Contra Entrega</option>
+                    </select>
+
+                    <button type="submit" id="btn-enviar" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition shadow flex items-center justify-center gap-2 mt-4">
+                        <i class="fab fa-whatsapp text-xl"></i> Registrar y Enviar por WhatsApp
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN GLOBAL
+        const CONFIG = {
+            HOJA_ID: '1_IRtWmWDYWKhqAgcU99Y3wlU26HAlq-xYtvvu-QUTwU', // El ID largo de tu Google Sheets (Recuerda poner tu hoja como "Cualquiera con el enlace")
+            URL_API: 'https://script.google.com/macros/s/AKfycbwvICuQ5Z0NAwFSGwOJJ0YxYUmf7C0K4OOWSN8DqtV3DG4RcpfVd26aPfcUcwqlCqd1/exec',  // Pega aquí el enlace largo que te dio Apps Script al implementar
+            NUMERO_WHATSAPP: '573016356711',    // Tu WhatsApp de ventas con código de país (ej: 57 para Colombia)
+            TOKEN: 'MiTiendaSecreta2026'         // Contraseña de seguridad que pusimos en el script
+        };
+
+        let productosBase = [];
+        let carrito = [];
+
+        // Leer productos desde Google Sheets
+        async function cargarProductos() {
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${CONFIG.HOJA_ID}/gviz/tq?tqx=out:csv&sheet=Productos`;
+                const respuesta = await fetch(url);
+                const textoCsv = await respuesta.text();
+                
+                const filas = textoCsv.split('\n').map(fila => fila.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/));
+                const cabeceras = filas[0].map(h => h.replace(/"/g, '').trim());
+                
+                productosBase = [];
+                for(let i = 1; i < filas.length; i++) {
+                    if(!filas[i][0]) continue;
+                    let prod = {};
+                    cabeceras.forEach((cab, index) => {
+                        let valor = filas[i][index] ? filas[i][index].replace(/"/g, '').trim() : '';
+                        prod[cab] = valor;
+                    });
+                    if(prod.Activo === 'TRUE' || prod.Activo === 'true') {
+                        productosBase.push(prod);
+                    }
+                }
+                renderizarCatalogo(productosBase);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('contenedor-productos').innerHTML = `<p class="text-center text-red-500 col-span-full py-8">Error al cargar productos. Verifica la configuración.</p>`;
+            }
+        }
+
+        function renderizarCatalogo(productos) {
+            const contenedor = document.getElementById('contenedor-productos');
+            contenedor.innerHTML = '';
+            const nombresUnicos = [...new Set(productos.map(p => p.Producto_Nombre))];
+
+            nombresUnicos.forEach(nombre => {
+                const variantes = productos.filter(p => p.Producto_Nombre === nombre);
+                const principal = variantes[0];
+                const tallas = [...new Set(variantes.map(v => v.Talla))];
+                const colores = [...new Set(variantes.map(v => v.Color))];
+
+                let tallaOpciones = tallas.map(t => `<option value="${t}">${t}</option>`).join('');
+                let colorOpciones = colores.map(c => `<option value="${c}">${c}</option>`).join('');
+
+                const tarjeta = `
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col">
+                        <img src="${principal.Imagen_URL}" alt="${nombre}" class="w-full h-64 object-cover bg-gray-100">
+                        <div class="p-4 flex-1 flex flex-col justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full uppercase">${principal.Categoria}</span>
+                                <h4 class="font-bold text-lg mt-2 text-gray-800">${nombre}</h4>
+                                <p class="text-xl font-black text-gray-900 mt-1">$${Number(principal.Precio).toLocaleString('es-CO')}</p>
+                            </div>
+                            <div class="space-y-2 mt-4">
+                                <div class="flex gap-2 text-xs">
+                                    <div class="w-1/2">
+                                        <label class="block text-gray-500 mb-1">Talla:</label>
+                                        <select id="talla-${nombre.replace(/\s+/g, '-')}" class="w-full p-1.5 border rounded bg-gray-50 outline-none">${tallaOpciones}</select>
+                                    </div>
+                                    <div class="w-1/2">
+                                        <label class="block text-gray-500 mb-1">Color:</label>
+                                        <select id="color-${nombre.replace(/\s+/g, '-')}" class="w-full p-1.5 border rounded bg-gray-50 outline-none">${colorOpciones}</select>
+                                    </div>
+                                </div>
+                                <button onclick="agregarAlCarrito('${nombre}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-xl transition text-sm">Agregar al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                contenedor.innerHTML += tarjeta;
+            });
+        }
+
+        function agregarAlCarrito(nombreProducto) {
+            const idTalla = `talla-${nombreProducto.replace(/\s+/g, '-')}`;
+            const idColor = `color-${nombreProducto.replace(/\s+/g, '-')}`;
+            const tallaSeleccionada = document.getElementById(idTalla).value;
+            const colorSeleccionado = document.getElementById(idColor).value;
+
+            const varianteExacta = productosBase.find(p => p.Producto_Nombre === nombreProducto && p.Talla === tallaSeleccionada && p.Color === colorSeleccionado);
+
+            if(!varianteExacta) {
+                alert("Combinación no disponible.");
+                return;
+            }
+
+            const itemExistente = carrito.find(item => item.SKU === varianteExacta.SKU);
+            if(itemExistente) {
+                itemExistente.cantidad++;
+            } else {
+                carrito.push({
+                    SKU: varianteExacta.SKU,
+                    Nombre: varianteExacta.Producto_Nombre,
+                    Talla: tallaSeleccionada,
+                    Color: colorSeleccionado,
+                    Precio: Number(varianteExacta.Precio),
+                    cantidad: 1
+                });
+            }
+            actualizarInterfazCarrito();
+            document.getElementById('carrito-panel').classList.remove('hidden');
+        }
+
+        function actualizarInterfazCarrito() {
+            document.getElementById('cart-count').innerText = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+            const contenedorItems = document.getElementById('carrito-items');
+            if(carrito.length === 0) {
+                contenedorItems.innerHTML = `<p class="text-center text-gray-400 py-8">El carrito está vacío.</p>`;
+                document.getElementById('cart-total').innerText = "$0";
+                return;
+            }
+            contenedorItems.innerHTML = '';
+            let totalGeneral = 0;
+            carrito.forEach((item, index) => {
+                const sub = item.Precio * item.cantidad;
+                totalGeneral += sub;
+                contenedorItems.innerHTML += `
+                    <div class="flex items-center justify-between py-3">
+                        <div class="flex-1">
+                            <h5 class="font-bold text-sm text-gray-800">${item.Nombre}</h5>
+                            <p class="text-xs text-gray-500">${item.Talla} / ${item.Color}</p>
+                            <p class="text-sm font-semibold text-indigo-600">$${sub.toLocaleString('es-CO')}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="cambiarCantidad(${index}, -1)" class="w-6 h-6 bg-gray-100 rounded text-xs font-bold">-</button>
+                            <span class="text-sm font-bold">${item.cantidad}</span>
+                            <button onclick="cambiarCantidad(${index}, 1)" class="w-6 h-6 bg-gray-100 rounded text-xs font-bold">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('cart-total').innerText = `$${totalGeneral.toLocaleString('es-CO')}`;
+        }
+
+        function cambiarCantidad(index, cambio) {
+            carrito[index].cantidad += cambio;
+            if(carrito[index].cantidad <= 0) carrito.splice(index, 1);
+            actualizarInterfazCarrito();
+        }
+
+        function toggleCarrito() {
+            document.getElementById('carrito-panel').classList.toggle('hidden');
+        }
+
+        // PROCESAR COMPRA: Envía a Google Sheets y luego abre WhatsApp
+        async function procesarCompra(event) {
+            event.preventDefault();
+            if(carrito.length === 0) return alert("Tu carrito está vacío.");
+
+            const btn = document.getElementById('btn-enviar');
+            btn.disabled = true;
+            btn.innerText = "Procesando pedido...";
+
+            const datosPedido = {
+                token: CONFIG.TOKEN,
+                nombre: document.getElementById('nombre').value,
+                direccion: document.getElementById('direccion').value,
+                ciudad: document.getElementById('ciudad').value,
+                departamento: document.getElementById('departamento').value,
+                whatsapp: document.getElementById('whatsapp').value,
+                metodoPago: document.getElementById('pago').value,
+                productos: carrito.map(i => ({ sku: i.SKU, nombre: i.Nombre, cant: i.cantidad, talla: i.Talla, color: i.Color })),
+                envio: 0, // Puedes cambiarlo si manejas costo de envío fijo
+                total: carrito.reduce((acc, i) => acc + (i.Precio * i.cantidad), 0)
+            };
+
+            try {
+                // Guardar en Google Sheets mediante Apps Script
+                const respuesta = await fetch(CONFIG.URL_API, {
+                    method: 'POST',
+                    mode: 'no-cors', // Evita bloqueos de seguridad del navegador
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosPedido)
+                });
+
+                // Como usamos 'no-cors', no podemos leer la respuesta directamente por seguridad, 
+                // pero los datos ya se insertaron en tu Google Sheets de inmediato.
+
+                // Construir mensaje para enviar por WhatsApp
+                let mensaje = `🚨 *NUEVO PEDIDO REGISTRADO* 🚨\n\n`;
+                mensaje += `👤 *Cliente:* ${datosPedido.nombre}\n`;
+                mensaje += `📍 *Dirección:* ${datosPedido.direccion}\n`;
+                mensaje += `🏙️ *Ciudad:* ${datosPedido.ciudad}, ${datosPedido.departamento}\n`;
+                mensaje += `💳 *Pago:* ${datosPedido.metodoPago}\n\n`;
+                mensaje += `📦 *PRODUCTOS:* \n`;
+                
+                carrito.forEach(i => {
+                    mensaje += `- ${i.cantidad}x ${i.Nombre} (${i.Talla}/${i.Color})\n`;
+                });
+                mensaje += `\n💰 *TOTAL:* $${datosPedido.total.toLocaleString('es-CO')}\n\n`;
+                mensaje += `_Por favor confirma mi pedido revisando tu hoja de cálculo._`;
+
+                const enlaceWhatsapp = `https://api.whatsapp.com/send?phone=${CONFIG.NUMERO_WHATSAPP}&text=${encodeURIComponent(mensaje)}`;
+                
+                // Limpiar carrito y resetear interfaz
+                carrito = [];
+                actualizarInterfazCarrito();
+                document.getElementById('checkout-form').reset();
+                toggleCarrito();
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fab fa-whatsapp text-xl"></i> Registrar y Enviar por WhatsApp`;
+
+                // Redirigir a WhatsApp
+                window.open(enlaceWhatsapp, '_blank');
+
+            } catch (error) {
+                console.error(error);
+                alert("Hubo un inconveniente al registrar el pedido, pero puedes enviarlo por WhatsApp.");
+                btn.disabled = false;
+            }
+        }
+
+        window.onload = cargarProductos;
+    </script>
+</body>
+</html>
