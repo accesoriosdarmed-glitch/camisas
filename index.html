@@ -67,27 +67,71 @@
                     </div>
                     <input type="tel" id="whatsapp" placeholder="Número de WhatsApp" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
                     
-                    <label class="block text-xs font-bold text-gray-600 mt-2">MÉtodo de pago</label>
+                    <label class="block text-xs font-bold text-gray-600 mt-2">MÉTODO DE PAGO</label>
                     <select id="pago" class="w-full p-2.5 border rounded-lg bg-white text-sm outline-none">
                         <option value="Transferencia Bancaria">Transferencia Bancaria (Nequi/Daviplata)</option>
                         <option value="Pago contra entrega">Pago Contra Entrega</option>
                     </select>
 
-                    <button type="submit" id="btn-enviar" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition shadow flex items-center justify-center gap-2 mt-4">
-                        <i class="fab fa-whatsapp text-xl"></i> Registrar y Enviar por WhatsApp
+                    <button type="submit" id="btn-enviar" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow flex items-center justify-center gap-2 mt-4">
+                        <i class="fas fa-check-circle text-lg"></i> Confirmar y Realizar Compra
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
+    <div id="recibo-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative border-t-8 border-indigo-600 max-h-[90vh] overflow-y-auto">
+            <div class="text-center mb-4">
+                <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-2">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <h3 class="text-2xl font-black text-gray-800">¡Pedido Confirmado!</h3>
+                <p class="text-sm text-gray-500 mt-1">Tu orden ha sido registrada con éxito en nuestro sistema.</p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300 space-y-2 mb-4 text-sm">
+                <div class="flex justify-between font-bold text-gray-700">
+                    <span>NÚMERO DE PEDIDO:</span>
+                    <span id="recibo-id" class="text-indigo-600 text-base">PED-XXXX</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                    <span>Cliente:</span>
+                    <span id="recibo-cliente" class="font-medium text-gray-800">---</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                    <span>Destino:</span>
+                    <span id="recibo-destino" class="font-medium text-gray-800">---</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                    <span>Pago:</span>
+                    <span id="recibo-pago" class="font-medium text-gray-800">---</span>
+                </div>
+            </div>
+
+            <div class="space-y-2 mb-4">
+                <h4 class="font-bold text-xs text-gray-400 uppercase tracking-wider">Resumen de Productos</h4>
+                <div id="recibo-productos" class="divide-y text-sm max-h-32 overflow-y-auto pr-1">
+                    </div>
+            </div>
+
+            <div class="border-t pt-3 flex justify-between items-center text-lg font-black text-gray-900 mb-6">
+                <span>Total Cobrado:</span>
+                <span id="recibo-total" class="text-xl text-green-600">$0</span>
+            </div>
+
+            <button onclick="cerrarRecibo()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-xl transition text-center shadow block">
+                Entendido, Cerrar
+            </button>
+        </div>
+    </div>
+
     <script>
         // CONFIGURACIÓN GLOBAL
         const CONFIG = {
-            HOJA_ID: '1_IRtWmWDYWKhqAgcU99Y3wlU26HAlq-xYtvvu-QUTwU', // El ID largo de tu Google Sheets (Recuerda poner tu hoja como "Cualquiera con el enlace")
-            URL_API: 'https://script.google.com/macros/s/AKfycbwvICuQ5Z0NAwFSGwOJJ0YxYUmf7C0K4OOWSN8DqtV3DG4RcpfVd26aPfcUcwqlCqd1/exec',  // Pega aquí el enlace largo que te dio Apps Script al implementar
-            NUMERO_WHATSAPP: '573016356711',    // Tu WhatsApp de ventas con código de país (ej: 57 para Colombia)
-            TOKEN: 'MiTiendaSecreta2026'         // Contraseña de seguridad que pusimos en el script
+            HOJA_ID: 'TU_ID_DE_GOOGLE_SHEETS', // El ID largo de tu Google Sheets
+            URL_API: 'TU_URL_DE_APPS_SCRIPT'   // Pega aquí el NUEVO enlace largo de Apps Script
         };
 
         let productosBase = [];
@@ -173,10 +217,7 @@
 
             const varianteExacta = productosBase.find(p => p.Producto_Nombre === nombreProducto && p.Talla === tallaSeleccionada && p.Color === colorSeleccionado);
 
-            if(!varianteExacta) {
-                alert("Combinación no disponible.");
-                return;
-            }
+            if(!varianteExacta) return alert("Combinación no disponible.");
 
             const itemExistente = carrito.find(item => item.SKU === varianteExacta.SKU);
             if(itemExistente) {
@@ -236,72 +277,82 @@
             document.getElementById('carrito-panel').classList.toggle('hidden');
         }
 
-        // PROCESAR COMPRA: Envía a Google Sheets y luego abre WhatsApp
-        async function procesarCompra(event) {
+        // PROCESAR COMPRA E INYECTAR SCRIPT PARA EVITAR BLOQUEO DE NAVEGADOR (JSONP NATIVO)
+        function procesarCompra(event) {
             event.preventDefault();
             if(carrito.length === 0) return alert("Tu carrito está vacío.");
 
             const btn = document.getElementById('btn-enviar');
             btn.disabled = true;
-            btn.innerText = "Procesando pedido...";
+            btn.innerText = "Procesando pedido de forma segura...";
+
+            // Crear resumen de texto para guardar en una sola celda de la columna Productos_Detalle
+            let resumenProductos = carrito.map(i => `${i.cantidad}x ${i.Nombre} (${i.Talla}/${i.Color})`).join(' | ');
+            let totalPedido = carrito.reduce((acc, i) => acc + (i.Precio * i.cantidad), 0);
 
             const datosPedido = {
-                token: CONFIG.TOKEN,
                 nombre: document.getElementById('nombre').value,
                 direccion: document.getElementById('direccion').value,
                 ciudad: document.getElementById('ciudad').value,
                 departamento: document.getElementById('departamento').value,
                 whatsapp: document.getElementById('whatsapp').value,
                 metodoPago: document.getElementById('pago').value,
-                productos: carrito.map(i => ({ sku: i.SKU, nombre: i.Nombre, cant: i.cantidad, talla: i.Talla, color: i.Color })),
-                envio: 0, // Puedes cambiarlo si manejas costo de envío fijo
-                total: carrito.reduce((acc, i) => acc + (i.Precio * i.cantidad), 0)
+                productosTexto: resumenProductos,
+                total: totalPedido
             };
 
-            try {
-                // Guardar en Google Sheets mediante Apps Script
-                const respuesta = await fetch(CONFIG.URL_API, {
-                    method: 'POST',
-                    mode: 'no-cors', // Evita bloqueos de seguridad del navegador
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datosPedido)
-                });
+            // Crear conexión segura especial de "ida y vuelta" con Google Apps Script sin usar CORS
+            const nombreFuncionRetorno = "respuestaGoogle_" + Math.round(Math.random() * 100000);
+            
+            // Esta función se ejecuta inmediatamente cuando Google responde con éxito
+            window[nombreFuncionRetorno] = function(respuesta) {
+                if(respuesta.success) {
+                    // 1. Llenar la información de la ventana del Recibo Digital
+                    document.getElementById('recibo-id').innerText = respuesta.pedidoId;
+                    document.getElementById('recibo-cliente').innerText = datosPedido.nombre;
+                    document.getElementById('recibo-destino').innerText = `${datosPedido.ciudad}, ${datosPedido.departamento}`;
+                    document.getElementById('recibo-pago').innerText = datosPedido.metodoPago;
+                    document.getElementById('recibo-total').innerText = `$${datosPedido.total.toLocaleString('es-CO')}`;
 
-                // Como usamos 'no-cors', no podemos leer la respuesta directamente por seguridad, 
-                // pero los datos ya se insertaron en tu Google Sheets de inmediato.
+                    // Llenar la lista de productos del recibo
+                    const contenedorReciboProds = document.getElementById('recibo-productos');
+                    contenedorReciboProds.innerHTML = '';
+                    carrito.forEach(i => {
+                        contenedorReciboProds.innerHTML += `
+                            <div class="flex justify-between py-1.5 text-gray-700">
+                                <span>${i.cantidad}x ${i.Nombre} <span class="text-xs text-gray-400">(${i.Talla}/${i.Color})</span></span>
+                                <span class="font-medium">$${(i.Precio * i.cantidad).toLocaleString('es-CO')}</span>
+                            </div>
+                        `;
+                    });
 
-                // Construir mensaje para enviar por WhatsApp
-                let mensaje = `🚨 *NUEVO PEDIDO REGISTRADO* 🚨\n\n`;
-                mensaje += `👤 *Cliente:* ${datosPedido.nombre}\n`;
-                mensaje += `📍 *Dirección:* ${datosPedido.direccion}\n`;
-                mensaje += `🏙️ *Ciudad:* ${datosPedido.ciudad}, ${datosPedido.departamento}\n`;
-                mensaje += `💳 *Pago:* ${datosPedido.metodoPago}\n\n`;
-                mensaje += `📦 *PRODUCTOS:* \n`;
+                    // 2. Mostrar la ventana del Recibo en la pantalla
+                    document.getElementById('recibo-modal').classList.remove('hidden');
+
+                    // 3. Limpiar carrito y resetear el formulario
+                    carrito = [];
+                    actualizarInterfazCarrito();
+                    document.getElementById('checkout-form').reset();
+                    toggleCarrito();
+                } else {
+                    alert("Error en el sistema: " + respuesta.error);
+                }
                 
-                carrito.forEach(i => {
-                    mensaje += `- ${i.cantidad}x ${i.Nombre} (${i.Talla}/${i.Color})\n`;
-                });
-                mensaje += `\n💰 *TOTAL:* $${datosPedido.total.toLocaleString('es-CO')}\n\n`;
-                mensaje += `_Por favor confirma mi pedido revisando tu hoja de cálculo._`;
-
-                const enlaceWhatsapp = `https://api.whatsapp.com/send?phone=${CONFIG.NUMERO_WHATSAPP}&text=${encodeURIComponent(mensaje)}`;
-                
-                // Limpiar carrito y resetear interfaz
-                carrito = [];
-                actualizarInterfazCarrito();
-                document.getElementById('checkout-form').reset();
-                toggleCarrito();
+                // Limpieza del proceso
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fab fa-whatsapp text-xl"></i> Registrar y Enviar por WhatsApp`;
+                btn.innerHTML = `<i class="fas fa-check-circle text-lg"></i> Confirmar y Realizar Compra`;
+                document.body.removeChild(script);
+                delete window[nombreFuncionRetorno];
+            };
 
-                // Redirigir a WhatsApp
-                window.open(enlaceWhatsapp, '_blank');
+            // Inyectar la solicitud a Google en tiempo real
+            const script = document.createElement('script');
+            script.src = CONFIG.URL_API + "?callback=" + nombreFuncionRetorno + "&datos=" + encodeURIComponent(JSON.stringify(datosPedido));
+            document.body.appendChild(script);
+        }
 
-            } catch (error) {
-                console.error(error);
-                alert("Hubo un inconveniente al registrar el pedido, pero puedes enviarlo por WhatsApp.");
-                btn.disabled = false;
-            }
+        function cerrarRecibo() {
+            document.getElementById('recibo-modal').classList.add('hidden');
         }
 
         window.onload = cargarProductos;
