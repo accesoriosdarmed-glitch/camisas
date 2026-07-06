@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -15,7 +15,7 @@
                     colors: {
                         principal: '#111111', 
                         secundario: '#d1ebf7',
-                        fondoPersonalizado: '#e9e3c9' // Tu color de fondo personalizado
+                        fondoPersonalizado: '#e9e3c9'
                     }
                 }
             }
@@ -45,28 +45,28 @@
             <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-red-600">
                 <span class="w-2 h-6 bg-red-600 rounded-full"></span> 🔥 Descuentos Imperdibles
             </h3>
-            <div id="contenedor-descuentos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            <div id="contenedor-descuentos" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6"></div>
         </div>
 
         <div id="seccion-mas-vendidas" class="hidden">
             <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-gray-900">
                 <span class="w-2 h-6 bg-principal rounded-full"></span> 🌟 Las Más Vendidas
             </h3>
-            <div id="contenedor-mas-vendidas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            <div id="contenedor-mas-vendidas" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6"></div>
         </div>
 
         <div id="seccion-limitada" class="hidden">
             <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-amber-600">
                 <span class="w-2 h-6 bg-amber-500 rounded-full"></span> ⚡ Edición Limitada
             </h3>
-            <div id="contenedor-limitada" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            <div id="contenedor-limitada" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6"></div>
         </div>
 
         <div>
             <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-gray-900">
                 <span class="w-2 h-6 bg-principal rounded-full"></span> Nuestras Referencias
             </h3>
-            <div id="contenedor-general" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div id="contenedor-general" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
                 <div class="text-center col-span-full py-12 text-gray-600">
                     <i class="fas fa-spinner fa-spin text-3xl text-principal mb-3"></i>
                     <p class="text-sm font-medium">Sincronizando catálogo con Origen Lab...</p>
@@ -205,39 +205,55 @@
             }
         }
 
-        function generarTarjetaHTML(nombre, principal, tallas, colores, precioMostrar, esDescuento, precioOriginalTachado) {
+        function generarTarjetaHTML(nombre, producto, tallas, colores, precioMostrar, esDescuento, precioOriginalTachado) {
             let tallaOpciones = tallas.map(t => `<option value="${t}">${t}</option>`).join('');
             let colorOpciones = colores.map(c => `<option value="${c}">${c}</option>`).join('');
 
             let estructuraPrecio = esDescuento 
-                ? `<div class="flex items-center gap-2 mt-1">
-                     <span class="text-xl font-black text-red-600">$${Number(precioMostrar).toLocaleString('es-CO')}</span>
-                     <span class="text-sm text-gray-400 line-through">$${Number(precioOriginalTachado).toLocaleString('es-CO')}</span>
+                ? `<div class="flex flex-wrap items-center gap-1.5 mt-1">
+                     <span class="text-sm sm:text-lg font-black text-red-600">$${Number(precioMostrar).toLocaleString('es-CO')}</span>
+                     <span class="text-[10px] sm:text-xs text-gray-400 line-through">$${Number(precioOriginalTachado).toLocaleString('es-CO')}</span>
                    </div>`
-                : `<p class="text-xl font-black text-gray-900 mt-1">$${Number(precioMostrar).toLocaleString('es-CO')}</p>`;
+                : `<p class="text-sm sm:text-lg font-black text-gray-900 mt-1">$${Number(precioMostrar).toLocaleString('es-CO')}</p>`;
 
             return `
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col">
-                    <img src="${principal.Imagen_URL}" alt="${nombre}" class="w-full h-64 object-cover bg-gray-50">
-                    <div class="p-4 flex-1 flex flex-col justify-between">
+                <div class="bg-white rounded-2xl p-2 sm:p-4 border border-gray-100 shadow-sm flex flex-col justify-between group relative">
+                    
+                    <div class="relative w-full h-44 sm:h-72 rounded-xl overflow-hidden bg-gray-50 cursor-zoom-in touch-none select-none" 
+                         onmousemove="efectoZoomIn(event)" 
+                         onmouseleave="resetearZoom(event)"
+                         ontouchstart="iniciarZoomTactil(event)"
+                         ontouchmove="moverZoomTactil(event)"
+                         ontouchend="resetearZoom(event)">
+                         
+                        <img src="${producto.Imagen_URL}" 
+                             alt="${nombre}" 
+                             class="imagen-principal absolute inset-0 w-full h-full object-cover transition-opacity duration-300 origin-center z-10" />
+                        
+                        <img src="${producto.Imagen_URL2 ? producto.Imagen_URL2 : producto.Imagen_URL}" 
+                             alt="${nombre} vista alternativa" 
+                             class="imagen-secundaria absolute inset-0 w-full h-full object-cover transition-opacity duration-300 origin-center z-0 opacity-0" />
+                             
+                        ${producto.Imagen_URL2 && producto.Imagen_URL2 !== producto.Imagen_URL ? `
+                          <button onclick="alternarImagenMovil(event, this)" class="absolute top-2 right-2 z-30 bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center text-[10px] backdrop-blur-sm sm:hidden active:scale-95">
+                              <i class="fas fa-sync-alt"></i>
+                          </button>
+                        ` : ''}
+                    </div>
+
+                    <div class="mt-3 flex-1 flex flex-col justify-between space-y-1">
                         <div>
-                            <span class="text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">${principal.Categoria}</span>
-                            <h4 class="font-bold text-base mt-2 text-gray-800 tracking-tight">${nombre}</h4>
-                            ${estructuraPrecio}
+                            <span class="text-[8px] sm:text-[10px] uppercase font-bold tracking-wider text-gray-400 block">${producto.Categoria}</span>
+                            <h4 class="font-black text-gray-900 text-xs sm:text-base leading-tight line-clamp-1">${nombre}</h4>
+                            <p class="text-[10px] sm:text-xs text-gray-500 line-clamp-2 mt-1 leading-snug">
+                                ${producto.Descripción ? producto.Descripción : 'Sin descripción disponible.'}
+                            </p>
                         </div>
-                        <div class="space-y-2 mt-4">
-                            <div class="flex gap-2 text-xs">
-                                <div class="w-1/2">
-                                    <label class="block text-gray-400 mb-1 text-[10px] font-bold uppercase">Talla:</label>
-                                    <select id="talla-${nombre.replace(/\s+/g, '-')}" class="w-full p-2 border rounded-lg bg-gray-50 outline-none focus:border-gray-400">${tallaOpciones}</select>
-                                </div>
-                                <div class="w-1/2">
-                                    <label class="block text-gray-400 mb-1 text-[10px] font-bold uppercase">Color:</label>
-                                    <select id="color-${nombre.replace(/\s+/g, '-')}" class="w-full p-2 border rounded-lg bg-gray-50 outline-none focus:border-gray-400">${colorOpciones}</select>
-                                </div>
-                            </div>
-                            <button onclick="agregarAlCarrito('${nombre}')" class="w-full bg-principal hover:bg-black text-white font-bold py-2.5 rounded-xl transition text-xs uppercase tracking-wider">
-                                Agregar a la bolsa
+                        
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-50 mt-2">
+                            ${estructuraPrecio}
+                            <button onclick="agregarAlCarrito('${nombre}')" class="bg-principal hover:bg-black text-white text-[10px] sm:text-xs font-bold px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition shrink-0">
+                                Agregar
                             </button>
                         </div>
                     </div>
@@ -258,7 +274,6 @@
                 const colores = [...new Set(variantes.map(v => v.Color))];
 
                 let categoriasArray = principal.Categoria.split(',').map(c => c.trim().toLowerCase());
-
                 let tieneDescuentoCelda = principal.Descuento && Number(principal.Descuento) > 0;
                 let precioFinal = tieneDescuentoCelda ? Number(principal.Descuento) : Number(principal.Precio);
 
@@ -365,7 +380,85 @@
             document.getElementById('carrito-panel').classList.toggle('hidden');
         }
 
-        // CONTROLADOR DE CONEXIÓN DE RED REESTRUCTURADO 100% INMUNE A BLOQUEOS DE NAVEGACIÓN MÓVIL
+        // CONTROLADORES INTERACTIVOS DE IMAGEN Y ZOOM MÓVIL/PC
+        function alternarImagenMovil(e, boton) {
+            e.preventDefault();
+            e.stopPropagation();
+            const contenedor = boton.parentElement;
+            const imgPrincipal = contenedor.querySelector('.imagen-principal');
+            const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+            
+            if (imgSecundaria.classList.contains('opacity-0')) {
+                imgPrincipal.style.opacity = "0";
+                imgPrincipal.style.zIndex = "0";
+                imgSecundaria.classList.remove('opacity-0');
+                imgSecundaria.style.zIndex = "10";
+            } else {
+                imgPrincipal.style.opacity = "1";
+                imgPrincipal.style.zIndex = "10";
+                imgSecundaria.classList.add('opacity-0');
+                imgSecundaria.style.zIndex = "0";
+            }
+        }
+
+        function efectoZoomIn(e) {
+            const contenedor = e.currentTarget;
+            const imgPrincipal = contenedor.querySelector('.imagen-principal');
+            const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+            const imgActiva = imgSecundaria.style.zIndex === "10" || window.getComputedStyle(imgPrincipal).opacity === "0" ? imgSecundaria : imgPrincipal;
+
+            if (window.innerWidth >= 640 && imgSecundaria.src !== imgPrincipal.src) {
+                imgSecundaria.classList.remove('opacity-0');
+                imgPrincipal.style.opacity = "0";
+            }
+
+            const rect = contenedor.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            imgActiva.style.transformOrigin = `${x}% ${y}%`;
+            imgActiva.style.transform = "scale(1.8)";
+        }
+
+        function iniciarZoomTactil(e) {
+            const contenedor = e.currentTarget;
+            const imgPrincipal = contenedor.querySelector('.imagen-principal');
+            const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+            const imgActiva = imgSecundaria.style.zIndex === "10" ? imgSecundaria : imgPrincipal;
+            imgActiva.style.transition = "transform 0.1s ease-out";
+            moverZoomTactil(e);
+        }
+
+        function moverZoomTactil(e) {
+            if (e.touches.length === 0) return;
+            const contenedor = e.currentTarget;
+            const imgPrincipal = contenedor.querySelector('.imagen-principal');
+            const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+            const imgActiva = imgSecundaria.style.zIndex === "10" ? imgSecundaria : imgPrincipal;
+
+            const rect = contenedor.getBoundingClientRect();
+            const toque = e.touches[0];
+            const x = ((toque.clientX - rect.left) / rect.width) * 100;
+            const y = ((toque.clientY - rect.top) / rect.height) * 100;
+
+            imgActiva.style.transformOrigin = `${Math.max(0, Math.min(100, x))}% ${Math.max(0, Math.min(100, y))}%`;
+            imgActiva.style.transform = "scale(2.2)";
+        }
+
+        function resetearZoom(e) {
+            const contenedor = e.currentTarget;
+            const imgPrincipal = contenedor.querySelector('.imagen-principal');
+            const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+            
+            imgPrincipal.style.transform = "scale(1)";
+            imgSecundaria.style.transform = "scale(1)";
+
+            if (window.innerWidth >= 640) {
+                imgPrincipal.style.opacity = "1";
+                imgSecundaria.classList.add('opacity-0');
+            }
+        }
+
+        // ENVIAR PEDIDO ASINCRÓNICO
         async function procesarCompra(event) {
             event.preventDefault();
             if(carrito.length === 0) return alert("La bolsa está vacía.");
@@ -388,11 +481,8 @@
             let resumenProductos = carrito.map(i => `${i.cantidad}x ${i.Nombre} (${i.Talla}/${i.Color})`).join(' | ');
             let totalPedido = carrito.reduce((acc, i) => acc + (i.Precio * i.cantidad), 0);
 
-            // Sanitización total de textos (Remueve acentos/tildes y eñes que congelaban los móviles)
             const limpiarTextoSeguro = (str) => {
-                return str.normalize("NFD")
-                          .replace(/[\u0300-\u036f]/g, "")
-                          .replace(/[^a-zA-Z0-9 #,.-]/g, "");
+                return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9 #,.-]/g, "");
             };
 
             const datosPedido = {
@@ -406,204 +496,45 @@
                 total: totalPedido
             };
 
-            // Usa este bloque HTML dentro de tu bucle de renderizado en index.html
-const tarjetaProductoHTML = `
-  <div class="bg-white rounded-2xl p-2 sm:p-4 border border-gray-100 shadow-sm flex flex-col justify-between group relative">
-      
-      <div class="relative w-full h-48 sm:h-72 rounded-xl overflow-hidden bg-gray-50 cursor-zoom-in touch-none select-none" 
-           onmousemove="efectoZoomIn(event)" 
-           onmouseleave="resetearZoom(event)"
-           ontouchstart="iniciarZoomTactil(event)"
-           ontouchmove="moverZoomTactil(event)"
-           ontouchend="resetearZoom(event)">
-           
-          <img src="${producto.Imagen_URL}" 
-               alt="${producto.Producto_Nombre}" 
-               class="imagen-principal absolute inset-0 w-full h-full object-cover transition-opacity duration-300 origin-center z-10" />
-          
-          <img src="${producto.Imagen_URL2 ? producto.Imagen_URL2 : producto.Imagen_URL}" 
-               alt="${producto.Producto_Nombre} vista interna" 
-               class="imagen-secundaria absolute inset-0 w-full h-full object-cover transition-opacity duration-300 origin-center z-0 opacity-0" />
-               
-          ${producto.Imagen_URL2 ? `
-            <button onclick="alternarImagenMovil(event, this)" class="absolute top-2 right-2 z-30 bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center text-[10px] backdrop-blur-sm sm:hidden active:scale-95">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-          ` : ''}
-      </div>
+            // Inyección JSONP Directa hacia Apps Script
+            const nombreFuncionRetorno = "origenLabFinal_" + Math.round(Math.random() * 100000);
+            
+            window[nombreFuncionRetorno] = function(respuesta) {
+                if(respuesta.success) {
+                    document.getElementById('recibo-id').innerText = respuesta.pedidoId;
+                    document.getElementById('recibo-cliente').innerText = datosPedido.nombre;
+                    document.getElementById('recibo-destino').innerText = `${datosPedido.ciudad}, ${datosPedido.departamento}`;
+                    document.getElementById('recibo-pago').innerText = datosPedido.metodoPago;
+                    document.getElementById('recibo-total').innerText = `$${datosPedido.total.toLocaleString('es-CO')}`;
 
-      <div class="mt-3 flex-1 flex flex-col justify-between space-y-1">
-          <div>
-              <span class="text-[9px] uppercase font-bold tracking-wider text-gray-400 block">${producto.Categoria}</span>
-              <h3 class="font-black text-gray-900 text-xs sm:text-base leading-tight line-clamp-1">${producto.Producto_Nombre}</h3>
-              
-              <p class="text-[10px] sm:text-xs text-gray-500 line-clamp-2 mt-1 leading-snug">
-                  ${producto.Descripción ? producto.Descripción : 'Sin descripción disponible.'}
-              </p>
-          </div>
-          
-          <div class="flex items-center justify-between pt-2 border-t border-gray-50 mt-2">
-              <span class="font-black text-gray-950 text-sm sm:text-base">$${Number(producto.Precio).toLocaleString('es-CO')}</span>
-              <button onclick="agregarAlCarrito('${producto.SKU}')" class="bg-principal hover:bg-black text-white text-[10px] sm:text-xs font-bold px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition shrink-0">
-                  Agregar
-              </button>
-          </div>
-      </div>
-  </div>
-`;
-            // 1. ALTERNAR IMAGEN EN CELULARES AL TOCAR EL BOTÓN FLOTANTE
-function alternarImagenMovil(e, boton) {
-    e.preventDefault();
-    e.stopPropagation(); // Evita conflictos con clics fantasmas
-    
-    const contenedor = boton.parentElement;
-    const imgPrincipal = contenedor.querySelector('.imagen-principal');
-    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
-    
-    if (imgSecundaria.classList.contains('opacity-0')) {
-        // Mostrar segunda imagen
-        imgPrincipal.style.opacity = "0";
-        imgPrincipal.style.zIndex = "0";
-        imgSecundaria.classList.remove('opacity-0');
-        imgSecundaria.style.zIndex = "10";
-    } else {
-        // Volver a primera imagen
-        imgPrincipal.style.opacity = "1";
-        imgPrincipal.style.zIndex = "10";
-        imgSecundaria.classList.add('opacity-0');
-        imgSecundaria.style.zIndex = "0";
-    }
-}
+                    const contenedorReciboProds = document.getElementById('recibo-productos');
+                    contenedorReciboProds.innerHTML = '';
+                    carrito.forEach(i => {
+                        contenedorReciboProds.innerHTML += `
+                            <div class="flex justify-between py-1.5 text-gray-700">
+                                <span>${i.cantidad}x ${i.Nombre} <span class="text-[10px] text-gray-400">(${i.Talla}/${i.Color})</span></span>
+                                <span class="font-bold">$${(i.Precio * i.cantidad).toLocaleString('es-CO')}</span>
+                            </div>
+                        `;
+                    });
 
-// 2. ZOOM PARA COMPUTADORAS (MOUSE)
-function efectoZoomIn(e) {
-    const contenedor = e.currentTarget;
-    const imgPrincipal = contenedor.querySelector('.imagen-principal');
-    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
-    
-    // Identificar cuál imagen está visible actualmente en pantalla
-    const imgActiva = imgSecundaria.style.zIndex === "10" || window.getComputedStyle(imgPrincipal).opacity === "0" 
-        ? imgSecundaria 
-        : imgPrincipal;
-
-    // En computadoras hacemos el cambio de imagen automático por Hover
-    if (window.innerWidth >= 640 && imgSecundaria.src !== imgPrincipal.src) {
-        imgSecundaria.classList.remove('opacity-0');
-        imgPrincipal.style.opacity = "0";
-    }
-
-    const rect = contenedor.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    imgActiva.style.transformOrigin = `${x}% ${y}%`;
-    imgActiva.style.transform = "scale(1.8)";
-}
-
-// 3. ZOOM PARA CELULARES (GENTEST TOUCHSTART)
-function iniciarZoomTactil(e) {
-    const contenedor = e.currentTarget;
-    const imgPrincipal = contenedor.querySelector('.imagen-principal');
-    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
-    const imgActiva = imgSecundaria.style.zIndex === "10" ? imgSecundaria : imgPrincipal;
-    
-    imgActiva.style.transition = "transform 0.1s ease-out";
-    moverZoomTactil(e);
-}
-
-// 4. MOVIMIENTO DEL ZOOM CON EL DEDO (TOUCHMOVE)
-function moverZoomTactil(e) {
-    if (e.touches.length === 0) return;
-    const contenedor = e.currentTarget;
-    const imgPrincipal = contenedor.querySelector('.imagen-principal');
-    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
-    const imgActiva = imgSecundaria.style.zIndex === "10" ? imgSecundaria : imgPrincipal;
-
-    const rect = contenedor.getBoundingClientRect();
-    const toque = e.touches[0];
-    
-    const x = ((toque.clientX - rect.left) / rect.width) * 100;
-    const y = ((toque.clientY - rect.top) / rect.height) * 100;
-
-    // Limitar el origen dentro de los bordes del contenedor
-    const posX = Math.max(0, Math.min(100, x));
-    const posY = Math.max(0, Math.min(100, y));
-
-    imgActiva.style.transformOrigin = `${posX}% ${posY}%`;
-    imgActiva.style.transform = "scale(2.2)"; // Un poco más de escala en celular para ver detalles
-}
-
-// 5. RESTAURAR IMÁGENES AL SALIR
-function resetearZoom(e) {
-    const contenedor = e.currentTarget;
-    const imgPrincipal = contenedor.querySelector('.imagen-principal');
-    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
-    
-    // Resetear transformaciones de zoom
-    imgPrincipal.style.transform = "scale(1)";
-    imgSecundaria.style.transform = "scale(1)";
-    imgPrincipal.style.transition = "opacity 0.3s ease";
-    imgSecundaria.style.transition = "opacity 0.3s ease";
-
-    // En computadoras, revertir el cambio de imagen al sacar el mouse
-    if (window.innerWidth >= 640) {
-        imgPrincipal.style.opacity = "1";
-        imgSecundaria.classList.add('opacity-0');
-    }
-}
-
-            // Estructurar el envío en formato de Formulario Nativo (Inmune a bloqueos móviles de seguridad)
-            const formData = new URLSearchParams();
-            formData.append('datos', JSON.stringify(datosPedido));
-
-            // Colocar ID provisorio en lo que responde la red para evitar que se vea feo
-            document.getElementById('recibo-id').innerText = "Guardando...";
-            document.getElementById('recibo-cliente').innerText = datosPedido.nombre;
-            document.getElementById('recibo-destino').innerText = `${datosPedido.ciudad}, ${datosPedido.departamento}`;
-            document.getElementById('recibo-pago').innerText = datosPedido.metodoPago;
-            document.getElementById('recibo-total').innerText = `$${datosPedido.total.toLocaleString('es-CO')}`;
-
-            const contenedorReciboProds = document.getElementById('recibo-productos');
-            contenedorReciboProds.innerHTML = '';
-            carrito.forEach(i => {
-                contenedorReciboProds.innerHTML += `
-                    <div class="flex justify-between py-1.5 text-gray-700">
-                        <span>${i.cantidad}x ${i.Nombre} <span class="text-[10px] text-gray-400">(${i.Talla}/${i.Color})</span></span>
-                        <span class="font-bold">$${(i.Precio * i.cantidad).toLocaleString('es-CO')}</span>
-                    </div>
-                `;
-            });
-
-            try {
-                // Envío asíncronico forzado por pasarela de datos
-                await fetch(CONFIG.URL_API, {
-                    method: 'POST',
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData
-                });
-
-                // Al usar 'no-cors' la base de datos registra el pedido de inmediato.
-                // Como no lee el ID en reversa directo, le generamos una marca de tiempo elegante al cliente:
-                const marcaTiempoUnica = "PED-" + Math.floor(Date.now() / 100000).toString().slice(-4);
-                document.getElementById('recibo-id').innerText = marcaTiempoUnica;
-
-                // Desplegar el Recibo Visual
-                document.getElementById('recibo-modal').classList.remove('hidden');
-
-                // Resetear Bolsa y Formularios
-                carrito = [];
-                actualizarInterfazCarrito();
-                document.getElementById('checkout-form').reset();
-                toggleCarrito();
-
-            } catch (error) {
-                console.error(error);
-                alert("Ocurrió un error al enviar el pedido.");
-            } finally {
+                    document.getElementById('recibo-modal').classList.remove('hidden');
+                    carrito = [];
+                    actualizarInterfazCarrito();
+                    document.getElementById('checkout-form').reset();
+                    toggleCarrito();
+                } else {
+                    alert("Error: " + respuesta.error);
+                }
                 btn.disabled = false;
                 btn.innerText = "Confirmar y Realizar Compra";
-            }
+                document.body.removeChild(script);
+                delete window[nombreFuncionRetorno];
+            };
+
+            const script = document.createElement('script');
+            script.src = CONFIG.URL_API + "?callback=" + nombreFuncionRetorno + "&datos=" + encodeURIComponent(JSON.stringify(datosPedido));
+            document.body.appendChild(script);
         }
 
         function cerrarRecibo() {
