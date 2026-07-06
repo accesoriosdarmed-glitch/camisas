@@ -406,6 +406,152 @@
                 total: totalPedido
             };
 
+            // Usa este bloque HTML dentro de tu bucle de renderizado en index.html
+const tarjetaProductoHTML = `
+  <div class="bg-white rounded-2xl p-2 sm:p-4 border border-gray-100 shadow-sm flex flex-col justify-between group relative">
+      
+      <div class="relative w-full h-48 sm:h-72 rounded-xl overflow-hidden bg-gray-50 cursor-zoom-in touch-none select-none" 
+           onmousemove="efectoZoomIn(event)" 
+           onmouseleave="resetearZoom(event)"
+           ontouchstart="iniciarZoomTactil(event)"
+           ontouchmove="moverZoomTactil(event)"
+           ontouchend="resetearZoom(event)">
+           
+          <img src="${producto.Imagen_URL}" 
+               alt="${producto.Producto_Nombre}" 
+               class="imagen-principal absolute inset-0 w-full h-full object-cover transition-opacity duration-300 origin-center z-10" />
+          
+          <img src="${producto.Imagen_URL2 ? producto.Imagen_URL2 : producto.Imagen_URL}" 
+               alt="${producto.Producto_Nombre} vista interna" 
+               class="imagen-secundaria absolute inset-0 w-full h-full object-cover transition-opacity duration-300 origin-center z-0 opacity-0" />
+               
+          ${producto.Imagen_URL2 ? `
+            <button onclick="alternarImagenMovil(event, this)" class="absolute top-2 right-2 z-30 bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center text-[10px] backdrop-blur-sm sm:hidden active:scale-95">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+          ` : ''}
+      </div>
+
+      <div class="mt-3 flex-1 flex flex-col justify-between space-y-1">
+          <div>
+              <span class="text-[9px] uppercase font-bold tracking-wider text-gray-400 block">${producto.Categoria}</span>
+              <h3 class="font-black text-gray-900 text-xs sm:text-base leading-tight line-clamp-1">${producto.Producto_Nombre}</h3>
+              
+              <p class="text-[10px] sm:text-xs text-gray-500 line-clamp-2 mt-1 leading-snug">
+                  ${producto.Descripción ? producto.Descripción : 'Sin descripción disponible.'}
+              </p>
+          </div>
+          
+          <div class="flex items-center justify-between pt-2 border-t border-gray-50 mt-2">
+              <span class="font-black text-gray-950 text-sm sm:text-base">$${Number(producto.Precio).toLocaleString('es-CO')}</span>
+              <button onclick="agregarAlCarrito('${producto.SKU}')" class="bg-principal hover:bg-black text-white text-[10px] sm:text-xs font-bold px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition shrink-0">
+                  Agregar
+              </button>
+          </div>
+      </div>
+  </div>
+`;
+            // 1. ALTERNAR IMAGEN EN CELULARES AL TOCAR EL BOTÓN FLOTANTE
+function alternarImagenMovil(e, boton) {
+    e.preventDefault();
+    e.stopPropagation(); // Evita conflictos con clics fantasmas
+    
+    const contenedor = boton.parentElement;
+    const imgPrincipal = contenedor.querySelector('.imagen-principal');
+    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+    
+    if (imgSecundaria.classList.contains('opacity-0')) {
+        // Mostrar segunda imagen
+        imgPrincipal.style.opacity = "0";
+        imgPrincipal.style.zIndex = "0";
+        imgSecundaria.classList.remove('opacity-0');
+        imgSecundaria.style.zIndex = "10";
+    } else {
+        // Volver a primera imagen
+        imgPrincipal.style.opacity = "1";
+        imgPrincipal.style.zIndex = "10";
+        imgSecundaria.classList.add('opacity-0');
+        imgSecundaria.style.zIndex = "0";
+    }
+}
+
+// 2. ZOOM PARA COMPUTADORAS (MOUSE)
+function efectoZoomIn(e) {
+    const contenedor = e.currentTarget;
+    const imgPrincipal = contenedor.querySelector('.imagen-principal');
+    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+    
+    // Identificar cuál imagen está visible actualmente en pantalla
+    const imgActiva = imgSecundaria.style.zIndex === "10" || window.getComputedStyle(imgPrincipal).opacity === "0" 
+        ? imgSecundaria 
+        : imgPrincipal;
+
+    // En computadoras hacemos el cambio de imagen automático por Hover
+    if (window.innerWidth >= 640 && imgSecundaria.src !== imgPrincipal.src) {
+        imgSecundaria.classList.remove('opacity-0');
+        imgPrincipal.style.opacity = "0";
+    }
+
+    const rect = contenedor.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    imgActiva.style.transformOrigin = `${x}% ${y}%`;
+    imgActiva.style.transform = "scale(1.8)";
+}
+
+// 3. ZOOM PARA CELULARES (GENTEST TOUCHSTART)
+function iniciarZoomTactil(e) {
+    const contenedor = e.currentTarget;
+    const imgPrincipal = contenedor.querySelector('.imagen-principal');
+    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+    const imgActiva = imgSecundaria.style.zIndex === "10" ? imgSecundaria : imgPrincipal;
+    
+    imgActiva.style.transition = "transform 0.1s ease-out";
+    moverZoomTactil(e);
+}
+
+// 4. MOVIMIENTO DEL ZOOM CON EL DEDO (TOUCHMOVE)
+function moverZoomTactil(e) {
+    if (e.touches.length === 0) return;
+    const contenedor = e.currentTarget;
+    const imgPrincipal = contenedor.querySelector('.imagen-principal');
+    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+    const imgActiva = imgSecundaria.style.zIndex === "10" ? imgSecundaria : imgPrincipal;
+
+    const rect = contenedor.getBoundingClientRect();
+    const toque = e.touches[0];
+    
+    const x = ((toque.clientX - rect.left) / rect.width) * 100;
+    const y = ((toque.clientY - rect.top) / rect.height) * 100;
+
+    // Limitar el origen dentro de los bordes del contenedor
+    const posX = Math.max(0, Math.min(100, x));
+    const posY = Math.max(0, Math.min(100, y));
+
+    imgActiva.style.transformOrigin = `${posX}% ${posY}%`;
+    imgActiva.style.transform = "scale(2.2)"; // Un poco más de escala en celular para ver detalles
+}
+
+// 5. RESTAURAR IMÁGENES AL SALIR
+function resetearZoom(e) {
+    const contenedor = e.currentTarget;
+    const imgPrincipal = contenedor.querySelector('.imagen-principal');
+    const imgSecundaria = contenedor.querySelector('.imagen-secundaria');
+    
+    // Resetear transformaciones de zoom
+    imgPrincipal.style.transform = "scale(1)";
+    imgSecundaria.style.transform = "scale(1)";
+    imgPrincipal.style.transition = "opacity 0.3s ease";
+    imgSecundaria.style.transition = "opacity 0.3s ease";
+
+    // En computadoras, revertir el cambio de imagen al sacar el mouse
+    if (window.innerWidth >= 640) {
+        imgPrincipal.style.opacity = "1";
+        imgSecundaria.classList.add('opacity-0');
+    }
+}
+
             // Estructurar el envío en formato de Formulario Nativo (Inmune a bloqueos móviles de seguridad)
             const formData = new URLSearchParams();
             formData.append('datos', JSON.stringify(datosPedido));
