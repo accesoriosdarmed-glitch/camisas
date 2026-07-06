@@ -45,28 +45,28 @@
             <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-red-600">
                 <span class="w-2 h-6 bg-red-600 rounded-full"></span> 🔥 Descuentos Imperdibles
             </h3>
-            <div id="contenedor-descuentos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            <div id="contenedor-descuentos" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6"></div>
         </div>
 
         <div id="seccion-mas-vendidas" class="hidden">
             <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-gray-900">
                 <span class="w-2 h-6 bg-principal rounded-full"></span> 🌟 Las Más Vendidas
             </h3>
-            <div id="contenedor-mas-vendidas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            <div id="contenedor-mas-vendidas" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6"></div>
         </div>
 
         <div id="seccion-limitada" class="hidden">
             <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-amber-600">
                 <span class="w-2 h-6 bg-amber-500 rounded-full"></span> ⚡ Edición Limitada
             </h3>
-            <div id="contenedor-limitada" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            <div id="contenedor-limitada" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6"></div>
         </div>
 
         <div>
             <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-gray-900">
                 <span class="w-2 h-6 bg-principal rounded-full"></span> Nuestras Referencias
             </h3>
-            <div id="contenedor-general" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div id="contenedor-general" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 <div class="text-center col-span-full py-12 text-gray-600">
                     <i class="fas fa-spinner fa-spin text-3xl text-principal mb-3"></i>
                     <p class="text-sm font-medium">Sincronizando catálogo con Origen Lab...</p>
@@ -215,37 +215,50 @@
             let colorOpciones = colores.map(c => `<option value="${c}">${c}</option>`).join('');
 
             let estructuraPrecio = esDescuento 
-                ? `<div class="flex items-center gap-2 mt-1">
-                     <span class="text-xl font-black text-red-600">$${Number(precioMostrar).toLocaleString('es-CO')}</span>
-                     <span class="text-sm text-gray-400 line-through">$${Number(precioOriginalTachado).toLocaleString('es-CO')}</span>
+                ? `<div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                     <span class="text-base sm:text-xl font-black text-red-600">$${Number(precioMostrar).toLocaleString('es-CO')}</span>
+                     <span class="text-xs sm:text-sm text-gray-400 line-through">$${Number(precioOriginalTachado).toLocaleString('es-CO')}</span>
                    </div>`
-                : `<p class="text-xl font-black text-gray-900 mt-1">$${Number(precioMostrar).toLocaleString('es-CO')}</p>`;
+                : `<p class="text-base sm:text-xl font-black text-gray-900 mt-1">$${Number(precioMostrar).toLocaleString('es-CO')}</p>`;
 
-            // SOLUCIÓN: Usar data-img y data-nombre para evitar errores de sintaxis con comillas en los nombres o URLs
+            let idSafe = nombre.replace(/[^a-zA-Z0-9]/g, '-');
+            
+            // Construcción dinámica de los controles de imagen cuando existe Imagen_URL2
+            let selectorImagenes = '';
+            if (principal.Imagen_URL2 && principal.Imagen_URL2.trim() !== '' && principal.Imagen_URL2 !== 'undefined') {
+                selectorImagenes = `
+                    <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-10 bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm">
+                        <button onclick="cambiarImagenCard('${idSafe}', '${principal.Imagen_URL}', event)" class="w-2 h-2 rounded-full bg-white ring-2 ring-black transition-all"></button>
+                        <button onclick="cambiarImagenCard('${idSafe}', '${principal.Imagen_URL2}', event)" class="w-2 h-2 rounded-full bg-white/50 transition-all"></button>
+                    </div>
+                `;
+            }
+
             return `
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col">
-                    <div class="overflow-hidden cursor-zoom-in" onclick="abrirZoom(this.getAttribute('data-img'))" data-img="${principal.Imagen_URL}">
-                        <img src="${principal.Imagen_URL}" alt="${nombre}" class="w-full h-64 object-cover bg-gray-50 hover:scale-105 transition-transform duration-500">
+                    <div id="container-img-${idSafe}" class="overflow-hidden cursor-zoom-in relative" onclick="abrirZoom(this.getAttribute('data-img'))" data-img="${principal.Imagen_URL}">
+                        <img id="img-${idSafe}" src="${principal.Imagen_URL}" alt="${nombre}" class="w-full h-44 sm:h-64 object-cover bg-gray-50 hover:scale-105 transition-transform duration-500">
+                        ${selectorImagenes}
                     </div>
-                    <div class="p-4 flex-1 flex flex-col justify-between">
+                    <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between">
                         <div>
-                            <span class="text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">${principal.Categoria}</span>
-                            <h4 class="font-bold text-base mt-2 text-gray-800 tracking-tight">${nombre}</h4>
+                            <span class="text-[9px] sm:text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">${principal.Categoria}</span>
+                            <h4 class="font-bold text-xs sm:text-base mt-1.5 text-gray-800 tracking-tight line-clamp-2 min-h-[2rem] sm:min-h-normal">${nombre}</h4>
                             ${estructuraPrecio}
                         </div>
-                        <div class="space-y-2 mt-4">
-                            <div class="flex gap-2 text-xs">
+                        <div class="space-y-2 mt-3">
+                            <div class="flex gap-1.5 text-[11px] sm:text-xs">
                                 <div class="w-1/2">
-                                    <label class="block text-gray-400 mb-1 text-[10px] font-bold uppercase">Talla:</label>
-                                    <select id="talla-${nombre.replace(/\s+/g, '-')}" class="w-full p-2 border rounded-lg bg-gray-50 outline-none focus:border-gray-400">${tallaOpciones}</select>
+                                    <label class="block text-gray-400 mb-0.5 text-[9px] font-bold uppercase">Talla:</label>
+                                    <select id="talla-${nombre.replace(/\s+/g, '-')}" class="w-full p-1.5 border rounded-lg bg-gray-50 outline-none text-xs focus:border-gray-400">${tallaOpciones}</select>
                                 </div>
                                 <div class="w-1/2">
-                                    <label class="block text-gray-400 mb-1 text-[10px] font-bold uppercase">Color:</label>
-                                    <select id="color-${nombre.replace(/\s+/g, '-')}" class="w-full p-2 border rounded-lg bg-gray-50 outline-none focus:border-gray-400">${colorOpciones}</select>
+                                    <label class="block text-gray-400 mb-0.5 text-[9px] font-bold uppercase">Color:</label>
+                                    <select id="color-${nombre.replace(/\s+/g, '-')}" class="w-full p-1.5 border rounded-lg bg-gray-50 outline-none text-xs focus:border-gray-400">${colorOpciones}</select>
                                 </div>
                             </div>
-                            <button onclick="agregarAlCarrito(this.getAttribute('data-nombre'))" data-nombre="${nombre}" class="w-full bg-principal hover:bg-black text-white font-bold py-2.5 rounded-xl transition text-xs uppercase tracking-wider">
-                                Agregar a la bolsa
+                            <button onclick="agregarAlCarrito(this.getAttribute('data-nombre'))" data-nombre="${nombre}" class="w-full bg-principal hover:bg-black text-white font-bold py-2 rounded-xl transition text-[11px] sm:text-xs uppercase tracking-wider">
+                                Agregar
                             </button>
                         </div>
                     </div>
@@ -373,7 +386,7 @@
             document.getElementById('carrito-panel').classList.toggle('hidden');
         }
 
-        // FUNCIONES DEL ZOOM 
+        // FUNCIONES DEL ZOOM COMPATIBLES CON CAMBIO DINÁMICO
         function abrirZoom(url) {
             const modal = document.getElementById('zoom-modal');
             const img = document.getElementById('zoom-img');
@@ -385,6 +398,26 @@
             const modal = document.getElementById('zoom-modal');
             modal.classList.add('hidden');
             document.getElementById('zoom-img').src = '';
+        }
+
+        // CONTROLADOR DE CAMBIO DE IMAGEN EN LA CARD (INMUNE A BUGS DE DESPLAZAMIENTO)
+        function cambiarImagenCard(idSafe, url, event) {
+            event.stopPropagation(); // Evita que se abra el zoom inmediatamente al tocar el punto selector
+            const container = document.getElementById(`container-img-${idSafe}`);
+            const img = document.getElementById(`img-${idSafe}`);
+            if (img && container) {
+                img.src = url;
+                container.setAttribute('data-img', url); // Actualiza la imagen activa para el zoom del celular
+            }
+            
+            // Actualización visual de los botones indicadores
+            const dots = event.target.parentElement.children;
+            for (let dot of dots) {
+                dot.classList.remove('ring-2', 'ring-black', 'bg-white');
+                dot.classList.add('bg-white/50');
+            }
+            event.target.classList.remove('bg-white/50');
+            event.target.classList.add('bg-white', 'ring-2', 'ring-black');
         }
 
         // CONTROLADOR DE CONEXIÓN DE RED
