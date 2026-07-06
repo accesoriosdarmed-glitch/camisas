@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Origen Lab</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 width=%22100%22 height=%22100%22><text y=%220.9em%22 font-size=%2290%22>📊</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        principal: '#111111',
+                        secundario: '#d1ebf7',
+                        fondoPersonalizado: '#e9e3c9'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-fondoPersonalizado font-sans text-gray-900 min-h-screen">
+
+    <header class="bg-principal text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-lg font-black tracking-widest uppercase">Origen Lab <span class="text-secundario text-xs font-normal">| Panel de Control</span></h1>
+            <button onclick="inicializarDashboard()" class="bg-white/10 text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-white/20 transition flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i> Actualizar Datos
+            </button>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ingresos Totales</p>
+                <h3 id="meta-ingresos" class="text-2xl font-black text-gray-900 mt-1">$0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Pedidos Activos</p>
+                <h3 id="meta-activos" class="text-2xl font-black text-amber-600 mt-1">0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ticket Promedio</p>
+                <h3 id="meta-ticket" class="text-2xl font-black text-indigo-600 mt-1">$0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Día Más Fuerte</p>
+                <h3 id="meta-dia" class="text-xl font-black text-gray-800 mt-1">---</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div class="relative w-full md:w-96">
+                <i class="fas fa-search absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
+                <input type="text" id="buscador" oninput="filtrarPedidos()" placeholder="Buscar por ID, Cliente o Celular..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border rounded-xl outline-none text-sm focus:border-principal">
+            </div>
+            <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                <button onclick="filtrarPorEstado('Todos')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-principal text-white shrink-0">Todos</button>
+                <button onclick="filtrarPorEstado('Pendiente')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 shrink-0">Pendientes</button>
+                <button onclick="filtrarPorEstado('En Proceso')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 shrink-0">En Proceso</button>
+                <button onclick="filtrarPorEstado('Pendiente de Pago')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 shrink-0">Pendiente de Pago</button>
+                <button onclick="filtrarPorEstado('Finalizado')" class="filtro-btn px-4 py-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 shrink-0">Finalizados</button>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="text-base font-black uppercase tracking-wider mb-4 text-gray-800 flex items-center gap-2">
+                <span class="w-2 h-4 bg-principal rounded-full"></span> Órdenes de Compra
+            </h3>
+            
+            <div id="contenedor-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        const CONFIG = {
+            URL_API: 'TU_URL_DE_APPS_SCRIPT' // Pon la misma URL de Apps Script de tu tienda
+        };
+
+        let todosLosPedidos = [];
+        let estadoFiltroActual = 'Todos';
+
+        async function inicializarDashboard() {
+            const contenedor = document.getElementById('contenedor-cards');
+            contenedor.innerHTML = `<div class="col-span-full text-center py-12"><i class="fas fa-spinner fa-spin text-2xl text-principal mb-2"></i><p class="text-sm">Cargando base de datos...</p></div>`;
+            
+            const nombreFuncion = "dashCallback_" + Math.round(Math.random() * 100000);
+            window[nombreFuncion] = function(datos) {
+                todosLosPedidos = datos.reverse(); // Los más nuevos primero de entrada
+                calcularMetricas(todosLosPedidos);
+                renderizarCards(todosLosPedidos);
+                document.body.removeChild(script);
+                delete window[nombreFuncion];
+            };
+
+            const script = document.createElement('script');
+            script.src = CONFIG.URL_API + "?accion=leerPedidos&callback=" + nombreFuncion;
+            document.body.appendChild(script);
+        }
+
+        function calcularMetricas(pedidos) {
+            let ingresos = 0;
+            let activos = 0;
+            let diasConteo = {};
+
+            pedidos.forEach(p => {
+                let total = Number(p.Total_Cobrado) || 0;
+                ingresos += total;
+                if(p.Estado !== 'Finalizado') activos++;
+
+                // Extraer día de la fecha
+                if(p.Fecha) {
+                    let d = p.Fecha.split("T")[0] || p.Fecha.substring(0,10);
+                    diasConteo[d] = (diasConteo[d] || 0) + 1;
+                }
+            });
+
+            let diaMasVentas = "---";
+            let maxVentas = 0;
+            for(let dia in diasConteo) {
+                if(diasConteo[dia] > maxVentas) {
+                    maxVentas = diasConteo[dia];
+                    diaMasVentas = dia;
+                }
+            }
+
+            document.getElementById('meta-ingresos').innerText = `$${ingresos.toLocaleString('es-CO')}`;
+            document.getElementById('meta-activos').innerText = activos;
+            document.getElementById('meta-ticket').innerText = pedidos.length ? `$${Math.round(ingresos / pedidos.length).toLocaleString('es-CO')}` : "$0";
+            document.getElementById('meta-dia').innerText = diaMasVentas;
+        }
+
+        function renderizarCards(pedidos) {
+            const contenedor = document.getElementById('contenedor-cards');
+            contenedor.innerHTML = '';
+
+            // Clasificación: Los finalizados siempre van al fondo automáticamente
+            let activos = pedidos.filter(p => p.Estado !== 'Finalizado');
+            let finalizados = pedidos.filter(p => p.Estado === 'Finalizado');
+            let listaOrdenada = [...activos, ...finalizados];
+
+            if(listaOrdenada.length === 0) {
+                contenedor.innerHTML = `<p class="col-span-full text-center py-8 text-sm text-gray-500">No se encontraron pedidos con los criterios seleccionados.</p>`;
+                return;
+            }
+
+            listaOrdenada.forEach(p => {
+                let colorEstado = 'bg-gray-100 text-gray-800';
+                if(p.Estado === 'Pendiente') colorEstado = 'bg-amber-100 text-amber-800 border border-amber-300';
+                if(p.Estado === 'En Proceso') colorEstado = 'bg-blue-100 text-blue-800 border border-blue-300';
+                if(p.Estado === 'Pendiente de Pago') colorEstado = 'bg-purple-100 text-purple-800 border border-purple-300';
+                if(p.Estado === 'Finalizado') colorEstado = 'bg-green-100 text-green-800 opacity-75';
+
+                const card = `
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex flex-col justify-between space-y-4 transition hover:shadow-md ${p.Estado === 'Finalizado' ? 'bg-gray-50/50' : ''}">
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-black text-gray-400 tracking-wider">${p.ID_Pedido}</span>
+                                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${colorEstado}">${p.Estado || 'Pendiente'}</span>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-base text-gray-950">${p.Cliente_Nombre}</h4>
+                                <p class="text-xs text-gray-500"><i class="fas fa-map-marker-alt text-gray-400"></i> ${p.Ciudad} - ${p.Direccion_Residencia}</p>
+                            </div>
+                            <div class="bg-secundario/30 p-3 rounded-xl border border-gray-100">
+                                <p class="text-xs font-medium text-gray-800 leading-relaxed">${p.Productos_Detalle ? p.Productos_Detalle.replace(/\|/g, '<br>• ') : 'Sin detalle'}</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 pt-2 border-t">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-medium text-gray-400 uppercase">Monto total</span>
+                                <span class="font-black text-gray-900">$${(Number(p.Total_Cobrado) || 0).toLocaleString('es-CO')}</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[9px] font-black text-gray-400 uppercase mb-1">Cambiar Estado</label>
+                                    <select onchange="cambiarEstadoPedido('${p.ID_Pedido}', this.value)" class="w-full text-xs p-2 border rounded-lg bg-gray-50 font-bold outline-none">
+                                        <option value="Pendiente" ${p.Estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                        <option value="En Proceso" ${p.Estado === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
+                                        <option value="Pendiente de Pago" ${p.Estado === 'Pendiente de Pago' ? 'selected' : ''}>Pendiente de Pago</option>
+                                        <option value="Finalizado" ${p.Estado === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end">
+                                    <button onclick="notificarWhatsApp('${p.Cliente_Nombre}', '${p.Whatsapp}', '${p.Estado}', '${p.ID_Pedido}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm">
+                                        <i class="fab fa-whatsapp text-sm"></i> Notificar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                contenedor.innerHTML += card;
+            });
+        }
+
+        async function cambiarEstadoPedido(id, nuevoEstado) {
+            try {
+                // Envío asíncrono directo al script modificado
+                await fetch(CONFIG.URL_API, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ accion: "actualizarEstado", pedidoId: id, nuevoEstado: nuevoEstado })
+                });
+                
+                // Actualizar la memoria local para no tener que refrescar toda la base de datos
+                let ped = todosLosPedidos.find(p => p.ID_Pedido === id);
+                if(ped) ped.Estado = nuevoEstado;
+                
+                calcularMetricas(todosLosPedidos);
+                filtrarPedidos();
+            } catch (e) {
+                alert("Error al guardar estado en Google Sheets.");
+            }
+        }
+
+        function notificarWhatsApp(nombre, cel, estado, id) {
+            let msg = "";
+            if (estado === "Pendiente") {
+                msg = `¡Hola ${nombre}! Recibimos tu pedido con el código *${id}* en Origen Lab. Ya quedó registrado y está en cola de revisión médica y logística. ¡Gracias por confiar en nosotros!`;
+            } else if (estado === "En Proceso") {
+                msg = `¡Buenas noticias, ${nombre}! Tu pedido *${id}* ya entró a taller de estampado y empaque. Muy pronto te daremos novedades sobre tu guía de envío.`;
+            } else if (estado === "Pendiente de Pago") {
+                msg = `Hola ${nombre}, te escribimos de Origen Lab. Tenemos listo tu pedido *${id}*, quedamos atentos al comprobante de transferencia para proceder con el despacho.`;
+            } else if (estado === "Finalizado") {
+                msg = `¡Hola ${nombre}! Tu pedido *${id}* ya fue entregado por completo. Queríamos pasar a saludarte y saber cómo te fue con la prenda. ¿Te gustó el tallaje y el estampado? Tu retroalimentación nos ayuda muchísimo a seguir mejorando en Origen Lab. 🙌👕`;
+            }
+
+            window.open(`https://api.whatsapp.com/send?phone=57${cel}&text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function filtrarPedidos() {
+            let busqueda = document.getElementById('buscador').value.toLowerCase().trim();
+            
+            let filtrados = todosLosPedidos.filter(p => {
+                let cumpleEstado = (estadoFiltroActual === 'Todos') || (p.Estado === estadoFiltroActual);
+                let cumpleBusqueda = !busqueda || 
+                                     (p.ID_Pedido && p.ID_Pedido.toLowerCase().includes(busqueda)) ||
+                                     (p.Cliente_Nombre && p.Cliente_Nombre.toLowerCase().includes(busqueda)) ||
+                                     (p.Whatsapp && p.Whatsapp.includes(busqueda));
+                return cumpleEstado && cumpleBusqueda;
+            });
+            
+            renderizarCards(filtrados);
+        }
+
+        function filtrarPorEstado(estado) {
+            estadoFiltroActual = estado;
+            
+            // Estilos estéticos de los botones de filtro
+            document.querySelectorAll('.filtro-btn').forEach(btn => {
+                btn.classList.replace('bg-principal', 'bg-gray-100');
+                btn.classList.replace('text-white', 'text-gray-600');
+            });
+            event.target.classList.replace('bg-gray-100', 'bg-principal');
+            event.target.classList.replace('text-gray-600', 'text-white');
+            
+            filtrarPedidos();
+        }
+
+        window.onload = inicializarDashboard;
+    </script>
+</body>
+</html>
