@@ -3,141 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tienda de Camisetas Personalizadas</title>
+    <title>Origen Lab</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 width=%22100%22 height=%22100%22><text y=%220.9em%22 font-size=%2290%22>👕</text></svg>">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        principal: '#111111', // Negro Premium
+                        secundario: '#d1ebf7', // Azul Claro solicitado
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-50 font-sans text-gray-900">
+<body class="bg-gray-50 font-sans text-gray-900 selection:bg-secundario">
 
-    <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="bg-secundario text-principal text-xs font-bold py-1.5 text-center uppercase tracking-wider">
+        🚀 Envíos a todo Colombia
+    </div>
+
+    <header class="bg-principal text-white shadow-md sticky top-0 z-40">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-indigo-600 tracking-tight">👕 Camisetas PRO</h1>
-            <button onclick="toggleCarrito()" class="relative bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-indigo-200 transition">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Carrito</span>
-                <span id="cart-count" class="bg-indigo-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center absolute -top-2 -right-2">0</span>
+            <h1 class="text-xl font-black tracking-widest text-white uppercase">Origen Lab</h1>
+            <button onclick="toggleCarrito()" class="relative bg-white/10 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-white/20 transition border border-white/10">
+                <i class="fas fa-shopping-cart text-secundario"></i>
+                <span class="text-sm">Carrito</span>
+                <span id="cart-count" class="bg-secundario text-principal text-xs font-black w-5 h-5 rounded-full flex items-center justify-center absolute -top-2 -right-2">0</span>
             </button>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-8">
-        <div class="bg-gradient-to-r text-center from-indigo-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white mb-10 shadow-md">
-            <h2 class="text-3xl md:text-5xl font-extrabold mb-4">Camisetas Estampadas Premium</h2>
-            <p class="text-indigo-100 text-lg max-w-xl mx-auto">Elige tu diseño, selecciona tu talla y color ideal. ¡Envíos a todo el país!</p>
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-12">
+
+        <div id="seccion-descuentos" class="hidden">
+            <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-red-600">
+                <span class="w-2 h-6 bg-red-600 rounded-full"></span> 🔥 Descuentos Imperdibles
+            </h3>
+            <div id="contenedor-descuentos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
         </div>
 
-        <h3 class="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span class="w-2 h-6 bg-indigo-600 rounded-full"></span> Nuestro Catálogo
-        </h3>
+        <div id="seccion-mas-vendidas" class="hidden">
+            <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-gray-900">
+                <span class="w-2 h-6 bg-principal rounded-full"></span> 🌟 Las Más Vendidas
+            </h3>
+            <div id="contenedor-mas-vendidas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </div>
 
-        <div id="contenedor-productos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="text-center col-span-full py-12 text-gray-500">
-                <i class="fas fa-spinner fa-spin text-3xl text-indigo-600 mb-3"></i>
-                <p>Cargando espectaculares diseños desde Google Sheets...</p>
+        <div id="seccion-limitada" class="hidden">
+            <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-amber-600">
+                <span class="w-2 h-6 bg-amber-500 rounded-full"></span> ⚡ Edición Limitada
+            </h3>
+            <div id="contenedor-limitada" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </div>
+
+        <div>
+            <h3 class="text-xl font-black mb-6 uppercase tracking-wider flex items-center gap-2 text-gray-900">
+                <span class="w-2 h-6 bg-principal rounded-full"></span> Nuestras Referencias
+            </h3>
+            <div id="contenedor-general" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center col-span-full py-12 text-gray-400">
+                    <i class="fas fa-spinner fa-spin text-3xl text-principal mb-3"></i>
+                    <p class="text-sm">Sincronizando catálogo con Origen Lab...</p>
+                </div>
             </div>
         </div>
     </main>
 
-    <div id="carrito-panel" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex justify-end">
+    <div id="carrito-panel" class="fixed inset-0 bg-black/60 z-50 hidden flex justify-end backdrop-blur-sm">
         <div class="bg-white w-full max-w-md h-full flex flex-col shadow-2xl p-6 overflow-y-auto">
             <div class="flex justify-between items-center pb-4 border-b">
-                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-shopping-bag text-indigo-600"></i> Tu Pedido</h3>
+                <h3 class="text-lg font-black uppercase tracking-wider flex items-center gap-2"><i class="fas fa-shopping-bag text-principal"></i> Tu Bolsa</h3>
                 <button onclick="toggleCarrito()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
             </div>
 
             <div id="carrito-items" class="flex-1 divide-y overflow-y-auto my-4 pr-1">
-                <p class="text-center text-gray-400 py-8">El carrito está vacío.</p>
+                <p class="text-center text-gray-400 py-8 text-sm">Tu bolsa de compras está vacía.</p>
             </div>
 
             <div class="border-t pt-4 space-y-4">
-                <div class="flex justify-between text-lg font-bold">
-                    <span>Total Productos:</span>
-                    <span id="cart-total">$0</span>
+                <div class="flex justify-between text-base font-black uppercase">
+                    <span>Total Pedido:</span>
+                    <span id="cart-total" class="text-lg text-indigo-600">$0</span>
                 </div>
 
                 <hr>
 
                 <form id="checkout-form" onsubmit="procesarCompra(event)" class="space-y-3">
-                    <h4 class="font-bold text-sm text-gray-700 uppercase tracking-wider">Datos de Entrega</h4>
-                    <input type="text" id="nombre" placeholder="Nombre completo" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
-                    <input type="text" id="direccion" placeholder="Dirección de residencia" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="ciudad" placeholder="Ciudad" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
-                        <input type="text" id="departamento" placeholder="Departamento" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
-                    </div>
-                    <input type="tel" id="whatsapp" placeholder="Número de WhatsApp" required class="w-full p-2.5 border rounded-lg outline-none text-sm">
+                    <h4 class="font-bold text-xs text-gray-500 uppercase tracking-wider">Datos obligatorios de envío</h4>
+                    <input type="text" id="nombre" placeholder="Nombre completo" required class="w-full p-2.5 border rounded-lg outline-none text-sm focus:border-principal">
+                    <input type="text" id="direccion" placeholder="Dirección de residencia" required class="w-full p-2.5 border rounded-lg outline-none text-sm focus:border-principal">
                     
-                    <label class="block text-xs font-bold text-gray-600 mt-2">MÉTODO DE PAGO</label>
-                    <select id="pago" class="w-full p-2.5 border rounded-lg bg-white text-sm outline-none">
-                        <option value="Transferencia Bancaria">Transferencia Bancaria (Nequi/Daviplata)</option>
-                        <option value="Pago contra entrega">Pago Contra Entrega</option>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="ciudad" placeholder="Ciudad" required class="w-full p-2.5 border rounded-lg outline-none text-sm focus:border-principal">
+                        <input type="text" id="departamento" placeholder="Departamento" required class="w-full p-2.5 border rounded-lg outline-none text-sm focus:border-principal">
+                    </div>
+                    
+                    <div>
+                        <input type="text" id="whatsapp" placeholder="WhatsApp (Solo los 10 números, ej: 3101234567)" required class="w-full p-2.5 border rounded-lg outline-none text-sm focus:border-principal">
+                        <p id="error-whatsapp" class="text-red-500 text-xs mt-1 hidden font-semibold">⚠️ Número inválido. Deben ser exactamente 10 números sin letras ni espacios.</p>
+                    </div>
+                    
+                    <label class="block text-xs font-bold text-gray-500 uppercase">Método de pago</label>
+                    <select id="pago" class="w-full p-2.5 border rounded-lg bg-white text-sm outline-none focus:border-principal">
+                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                        <option value="Contra Entrega">Contra Entrega</option>
                     </select>
 
-                    <button type="submit" id="btn-enviar" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow flex items-center justify-center gap-2 mt-4">
-                        <i class="fas fa-check-circle text-lg"></i> Confirmar y Realizar Compra
+                    <button type="submit" id="btn-enviar" class="w-full bg-principal hover:bg-black text-white font-bold py-3 rounded-xl transition shadow text-sm uppercase tracking-wider mt-4">
+                        Confirmar y Realizar Compra
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <div id="recibo-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative border-t-8 border-indigo-600 max-h-[90vh] overflow-y-auto">
+    <div id="recibo-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative border-t-8 border-principal max-h-[90vh] overflow-y-auto">
             <div class="text-center mb-4">
-                <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-2">
-                    <i class="fas fa-receipt"></i>
+                <div class="w-12 h-12 bg-gray-100 text-gray-900 rounded-full flex items-center justify-center text-xl mx-auto mb-2">
+                    <i class="fas fa-check"></i>
                 </div>
-                <h3 class="text-2xl font-black text-gray-800">¡Pedido Confirmado!</h3>
-                <p class="text-sm text-gray-500 mt-1">Tu orden ha sido registrada con éxito en nuestro sistema.</p>
+                <h3 class="text-xl font-black text-gray-900 uppercase">¡Pedido Confirmado!</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Hemos guardado tu orden con éxito.</p>
             </div>
 
-            <div class="bg-gray-50 p-4 rounded-xl border border-dashed border-gray-300 space-y-2 mb-4 text-sm">
-                <div class="flex justify-between font-bold text-gray-700">
+            <div class="bg-secundario/40 p-4 rounded-xl border border-dashed border-gray-300 space-y-1.5 mb-4 text-xs text-gray-800">
+                <div class="flex justify-between font-black text-gray-900 border-b pb-1.5 border-gray-300">
                     <span>NÚMERO DE PEDIDO:</span>
-                    <span id="recibo-id" class="text-indigo-600 text-base">PED-XXXX</span>
+                    <span id="recibo-id" class="text-sm font-black">---</span>
                 </div>
-                <div class="flex justify-between text-gray-600">
+                <div class="flex justify-between pt-1">
                     <span>Cliente:</span>
-                    <span id="recibo-cliente" class="font-medium text-gray-800">---</span>
+                    <span id="recibo-cliente" class="font-bold">---</span>
                 </div>
-                <div class="flex justify-between text-gray-600">
+                <div class="flex justify-between">
                     <span>Destino:</span>
-                    <span id="recibo-destino" class="font-medium text-gray-800">---</span>
+                    <span id="recibo-destino" class="font-bold">---</span>
                 </div>
-                <div class="flex justify-between text-gray-600">
-                    <span>Pago:</span>
-                    <span id="recibo-pago" class="font-medium text-gray-800">---</span>
+                <div class="flex justify-between">
+                    <span>Método de Pago:</span>
+                    <span id="recibo-pago" class="font-bold">---</span>
                 </div>
             </div>
 
             <div class="space-y-2 mb-4">
-                <h4 class="font-bold text-xs text-gray-400 uppercase tracking-wider">Resumen de Productos</h4>
-                <div id="recibo-productos" class="divide-y text-sm max-h-32 overflow-y-auto pr-1">
-                    </div>
+                <h4 class="font-bold text-[10px] text-gray-400 uppercase tracking-widest">Resumen de Artículos</h4>
+                <div id="recibo-productos" class="divide-y text-xs max-h-36 overflow-y-auto pr-1"></div>
             </div>
 
-            <div class="border-t pt-3 flex justify-between items-center text-lg font-black text-gray-900 mb-6">
-                <span>Total Cobrado:</span>
-                <span id="recibo-total" class="text-xl text-green-600">$0</span>
+            <div class="border-t pt-3 flex justify-between items-center text-base font-black text-gray-900 mb-5">
+                <span>Total:</span>
+                <span id="recibo-total" class="text-lg text-gray-900">$0</span>
             </div>
 
-            <button onclick="cerrarRecibo()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-xl transition text-center shadow block">
-                Entendido, Cerrar
+            <button onclick="cerrarRecibo()" class="w-full bg-principal hover:bg-black text-white font-bold py-2.5 rounded-xl transition text-center shadow text-xs uppercase tracking-wider">
+                Cerrar Recibo
             </button>
         </div>
     </div>
 
     <script>
-        // CONFIGURACIÓN GLOBAL
         const CONFIG = {
-            HOJA_ID: '1_IRtWmWDYWKhqAgcU99Y3wlU26HAlq-xYtvvu-QUTwU', // El ID largo de tu Google Sheets
-            URL_API: 'https://script.google.com/macros/s/AKfycbwvICuQ5Z0NAwFSGwOJJ0YxYUmf7C0K4OOWSN8DqtV3DG4RcpfVd26aPfcUcwqlCqd1/exec'   // Pega aquí el NUEVO enlace largo de Apps Script
+            HOJA_ID: 'TU_ID_DE_GOOGLE_SHEETS', 
+            URL_API: 'TU_URL_DE_APPS_SCRIPT'   
         };
 
         let productosBase = [];
         let carrito = [];
 
-        // Leer productos desde Google Sheets
         async function cargarProductos() {
             try {
                 const url = `https://docs.google.com/spreadsheets/d/${CONFIG.HOJA_ID}/gviz/tq?tqx=out:csv&sheet=Productos`;
@@ -159,17 +197,58 @@
                         productosBase.push(prod);
                     }
                 }
-                renderizarCatalogo(productosBase);
+                organizarSecciones(productosBase);
             } catch (error) {
                 console.error(error);
-                document.getElementById('contenedor-productos').innerHTML = `<p class="text-center text-red-500 col-span-full py-8">Error al cargar productos. Verifica la configuración.</p>`;
+                document.getElementById('contenedor-general').innerHTML = `<p class="text-center text-red-500 col-span-full text-xs">Error al cargar referencias de Origen Lab.</p>`;
             }
         }
 
-        function renderizarCatalogo(productos) {
-            const contenedor = document.getElementById('contenedor-productos');
-            contenedor.innerHTML = '';
+        function generarTarjetaHTML(nombre, principal, tallas, colores, precioMostrar, esDescuento, precioOriginalTachado) {
+            let tallaOpciones = tallas.map(t => `<option value="${t}">${t}</option>`).join('');
+            let colorOpciones = colores.map(c => `<option value="${c}">${c}</option>`).join('');
+
+            let estructuraPrecio = esDescuento 
+                ? `<div class="flex items-center gap-2 mt-1">
+                     <span class="text-xl font-black text-red-600">$${Number(precioMostrar).toLocaleString('es-CO')}</span>
+                     <span class="text-sm text-gray-400 line-through">$${Number(precioOriginalTachado).toLocaleString('es-CO')}</span>
+                   </div>`
+                : `<p class="text-xl font-black text-gray-900 mt-1">$${Number(precioMostrar).toLocaleString('es-CO')}</p>`;
+
+            return `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col">
+                    <img src="${principal.Imagen_URL}" alt="${nombre}" class="w-full h-64 object-cover bg-gray-50">
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">${principal.Categoria}</span>
+                            <h4 class="font-bold text-base mt-2 text-gray-800 tracking-tight">${nombre}</h4>
+                            ${estructuraPrecio}
+                        </div>
+                        <div class="space-y-2 mt-4">
+                            <div class="flex gap-2 text-xs">
+                                <div class="w-1/2">
+                                    <label class="block text-gray-400 mb-1 text-[10px] font-bold uppercase">Talla:</label>
+                                    <select id="talla-${nombre.replace(/\s+/g, '-')}" class="w-full p-2 border rounded-lg bg-gray-50 outline-none focus:border-gray-400">${tallaOpciones}</select>
+                                </div>
+                                <div class="w-1/2">
+                                    <label class="block text-gray-400 mb-1 text-[10px] font-bold uppercase">Color:</label>
+                                    <select id="color-${nombre.replace(/\s+/g, '-')}" class="w-full p-2 border rounded-lg bg-gray-50 outline-none focus:border-gray-400">${colorOpciones}</select>
+                                </div>
+                            </div>
+                            <button onclick="agregarAlCarrito('${nombre}')" class="w-full bg-principal hover:bg-black text-white font-bold py-2.5 rounded-xl transition text-xs uppercase tracking-wider">
+                                Agregar a la bolsa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function organizarSecciones(productos) {
             const nombresUnicos = [...new Set(productos.map(p => p.Producto_Nombre))];
+
+            let htmlGeneral = '', htmlDescuentos = '', htmlMasVendidas = '', htmlLimitada = '';
+            let tieneDescuentos = false, tieneMasVendidas = false, tieneLimitada = false;
 
             nombresUnicos.forEach(nombre => {
                 const variantes = productos.filter(p => p.Producto_Nombre === nombre);
@@ -177,36 +256,45 @@
                 const tallas = [...new Set(variantes.map(v => v.Talla))];
                 const colores = [...new Set(variantes.map(v => v.Color))];
 
-                let tallaOpciones = tallas.map(t => `<option value="${t}">${t}</option>`).join('');
-                let colorOpciones = colores.map(c => `<option value="${c}">${c}</option>`).join('');
+                // Manejo de categorías múltiples separadas por comas
+                let categoriasArray = principal.Categoria.split(',').map(c => c.trim().toLowerCase());
 
-                const tarjeta = `
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col">
-                        <img src="${principal.Imagen_URL}" alt="${nombre}" class="w-full h-64 object-cover bg-gray-100">
-                        <div class="p-4 flex-1 flex flex-col justify-between">
-                            <div>
-                                <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full uppercase">${principal.Categoria}</span>
-                                <h4 class="font-bold text-lg mt-2 text-gray-800">${nombre}</h4>
-                                <p class="text-xl font-black text-gray-900 mt-1">$${Number(principal.Precio).toLocaleString('es-CO')}</p>
-                            </div>
-                            <div class="space-y-2 mt-4">
-                                <div class="flex gap-2 text-xs">
-                                    <div class="w-1/2">
-                                        <label class="block text-gray-500 mb-1">Talla:</label>
-                                        <select id="talla-${nombre.replace(/\s+/g, '-')}" class="w-full p-1.5 border rounded bg-gray-50 outline-none">${tallaOpciones}</select>
-                                    </div>
-                                    <div class="w-1/2">
-                                        <label class="block text-gray-500 mb-1">Color:</label>
-                                        <select id="color-${nombre.replace(/\s+/g, '-')}" class="w-full p-1.5 border rounded bg-gray-50 outline-none">${colorOpciones}</select>
-                                    </div>
-                                </div>
-                                <button onclick="agregarAlCarrito('${nombre}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-xl transition text-sm">Agregar al Carrito</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                contenedor.innerHTML += tarjeta;
+                let tieneDescuentoCelda = principal.Descuento && Number(principal.Descuento) > 0;
+                let precioFinal = tieneDescuentoCelda ? Number(principal.Descuento) : Number(principal.Precio);
+
+                let tarjetaHTML = generarTarjetaHTML(nombre, principal, tallas, colores, precioFinal, tieneDescuentoCelda, principal.Precio);
+
+                // Clasificar en contenedores independientes
+                if (categoriasArray.includes('descuentos') || tieneDescuentoCelda) {
+                    htmlDescuentos += tarjetaHTML;
+                    tieneDescuentos = true;
+                }
+                if (categoriasArray.includes('las más vendidas') || categoriasArray.includes('mas vendidas')) {
+                    htmlMasVendidas += tarjetaHTML;
+                    tieneMasVendidas = true;
+                }
+                if (categoriasArray.includes('limitada')) {
+                    htmlLimitada += tarjetaHTML;
+                    tieneLimitada = true;
+                }
+                
+                htmlGeneral += tarjetaHTML;
             });
+
+            document.getElementById('contenedor-general').innerHTML = htmlGeneral || '<p class="col-span-full text-center py-6 text-sm text-gray-400">No hay referencias cargadas.</p>';
+
+            if(tieneDescuentos) {
+                document.getElementById('contenedor-descuentos').innerHTML = htmlDescuentos;
+                document.getElementById('seccion-descuentos').classList.remove('hidden');
+            }
+            if(tieneMasVendidas) {
+                document.getElementById('contenedor-mas-vendidas').innerHTML = htmlMasVendidas;
+                document.getElementById('seccion-mas-vendidas').classList.remove('hidden');
+            }
+            if(tieneLimitada) {
+                document.getElementById('contenedor-limitada').innerHTML = htmlLimitada;
+                document.getElementById('seccion-limitada').classList.remove('hidden');
+            }
         }
 
         function agregarAlCarrito(nombreProducto) {
@@ -216,8 +304,9 @@
             const colorSeleccionado = document.getElementById(idColor).value;
 
             const varianteExacta = productosBase.find(p => p.Producto_Nombre === nombreProducto && p.Talla === tallaSeleccionada && p.Color === colorSeleccionado);
+            if(!varianteExacta) return alert("Variante no disponible.");
 
-            if(!varianteExacta) return alert("Combinación no disponible.");
+            let precioArticulo = (varianteExacta.Descuento && Number(varianteExacta.Descuento) > 0) ? Number(varianteExacta.Descuento) : Number(varianteExacta.Precio);
 
             const itemExistente = carrito.find(item => item.SKU === varianteExacta.SKU);
             if(itemExistente) {
@@ -228,7 +317,7 @@
                     Nombre: varianteExacta.Producto_Nombre,
                     Talla: tallaSeleccionada,
                     Color: colorSeleccionado,
-                    Precio: Number(varianteExacta.Precio),
+                    Precio: precioArticulo,
                     cantidad: 1
                 });
             }
@@ -240,7 +329,7 @@
             document.getElementById('cart-count').innerText = carrito.reduce((acc, item) => acc + item.cantidad, 0);
             const contenedorItems = document.getElementById('carrito-items');
             if(carrito.length === 0) {
-                contenedorItems.innerHTML = `<p class="text-center text-gray-400 py-8">El carrito está vacío.</p>`;
+                contenedorItems.innerHTML = `<p class="text-center text-gray-400 py-8 text-xs">Tu bolsa está vacía.</p>`;
                 document.getElementById('cart-total').innerText = "$0";
                 return;
             }
@@ -253,13 +342,13 @@
                     <div class="flex items-center justify-between py-3">
                         <div class="flex-1">
                             <h5 class="font-bold text-sm text-gray-800">${item.Nombre}</h5>
-                            <p class="text-xs text-gray-500">${item.Talla} / ${item.Color}</p>
-                            <p class="text-sm font-semibold text-indigo-600">$${sub.toLocaleString('es-CO')}</p>
+                            <p class="text-[11px] text-gray-400 uppercase font-semibold mt-0.5">${item.Talla} / ${item.Color}</p>
+                            <p class="text-xs font-bold text-gray-900 mt-1">$${sub.toLocaleString('es-CO')}</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="cambiarCantidad(${index}, -1)" class="w-6 h-6 bg-gray-100 rounded text-xs font-bold">-</button>
-                            <span class="text-sm font-bold">${item.cantidad}</span>
-                            <button onclick="cambiarCantidad(${index}, 1)" class="w-6 h-6 bg-gray-100 rounded text-xs font-bold">+</button>
+                            <button onclick="cambiarCantidad(${index}, -1)" class="w-6 h-6 bg-gray-100 rounded text-xs font-bold hover:bg-gray-200">-</button>
+                            <span class="text-xs font-bold w-4 text-center">${item.cantidad}</span>
+                            <button onclick="cambiarCantidad(${index}, 1)" class="w-6 h-6 bg-gray-100 rounded text-xs font-bold hover:bg-gray-200">+</button>
                         </div>
                     </div>
                 `;
@@ -277,75 +366,83 @@
             document.getElementById('carrito-panel').classList.toggle('hidden');
         }
 
-        // PROCESAR COMPRA E INYECTAR SCRIPT PARA EVITAR BLOQUEO DE NAVEGADOR (JSONP NATIVO)
+        // CONTROLADOR DE COMPRAS ULTRA-SEGURO ANTIBLOQUEOS MÓVILES
         function procesarCompra(event) {
             event.preventDefault();
-            if(carrito.length === 0) return alert("Tu carrito está vacío.");
+            if(carrito.length === 0) return alert("La bolsa está vacía.");
+
+            // 1. VALIDACIÓN ESTRICTA DE WHATSAPP (Solo 10 dígitos, sin espacios, guiones ni letras)
+            const inputWhatsapp = document.getElementById('whatsapp').value.trim();
+            const regexWhatsapp = /^[0-9]{10}$/; // Valida exactamente 10 números continuos
+
+            if (!regexWhatsapp.test(inputWhatsapp)) {
+                document.getElementById('error-whatsapp').classList.remove('hidden');
+                document.getElementById('whatsapp').focus();
+                return;
+            } else {
+                document.getElementById('error-whatsapp').classList.add('hidden');
+            }
 
             const btn = document.getElementById('btn-enviar');
             btn.disabled = true;
-            btn.innerText = "Procesando pedido de forma segura...";
+            btn.innerText = "Registrando orden...";
 
-            // Crear resumen de texto para guardar en una sola celda de la columna Productos_Detalle
             let resumenProductos = carrito.map(i => `${i.cantidad}x ${i.Nombre} (${i.Talla}/${i.Color})`).join(' | ');
             let totalPedido = carrito.reduce((acc, i) => acc + (i.Precio * i.cantidad), 0);
 
+            // Sanitización de textos para evitar romper la URL de Apps Script en smartphones
+            const limpiarTexto = (t) => t.replace(/[^a-zA-Z0-9 #,.-]/g, "");
+
             const datosPedido = {
-                nombre: document.getElementById('nombre').value,
-                direccion: document.getElementById('direccion').value,
-                ciudad: document.getElementById('ciudad').value,
-                departamento: document.getElementById('departamento').value,
-                whatsapp: document.getElementById('whatsapp').value,
+                nombre: limpiarTexto(document.getElementById('nombre').value),
+                direccion: limpiarTexto(document.getElementById('direccion').value),
+                ciudad: limpiarTexto(document.getElementById('ciudad').value),
+                departamento: limpiarTexto(document.getElementById('departamento').value),
+                whatsapp: inputWhatsapp,
                 metodoPago: document.getElementById('pago').value,
-                productosTexto: resumenProductos,
+                productosTexto: limpiarTexto(resumenProductos),
                 total: totalPedido
             };
 
-            // Crear conexión segura especial de "ida y vuelta" con Google Apps Script sin usar CORS
-            const nombreFuncionRetorno = "respuestaGoogle_" + Math.round(Math.random() * 100000);
+            const nombreFuncionRetorno = "origenLabCallback_" + Math.round(Math.random() * 100000);
             
-            // Esta función se ejecuta inmediatamente cuando Google responde con éxito
             window[nombreFuncionRetorno] = function(respuesta) {
                 if(respuesta.success) {
-                    // 1. Llenar la información de la ventana del Recibo Digital
                     document.getElementById('recibo-id').innerText = respuesta.pedidoId;
                     document.getElementById('recibo-cliente').innerText = datosPedido.nombre;
                     document.getElementById('recibo-destino').innerText = `${datosPedido.ciudad}, ${datosPedido.departamento}`;
                     document.getElementById('recibo-pago').innerText = datosPedido.metodoPago;
                     document.getElementById('recibo-total').innerText = `$${datosPedido.total.toLocaleString('es-CO')}`;
 
-                    // Llenar la lista de productos del recibo
                     const contenedorReciboProds = document.getElementById('recibo-productos');
                     contenedorReciboProds.innerHTML = '';
                     carrito.forEach(i => {
                         contenedorReciboProds.innerHTML += `
                             <div class="flex justify-between py-1.5 text-gray-700">
-                                <span>${i.cantidad}x ${i.Nombre} <span class="text-xs text-gray-400">(${i.Talla}/${i.Color})</span></span>
-                                <span class="font-medium">$${(i.Precio * i.cantidad).toLocaleString('es-CO')}</span>
+                                <span>${i.cantidad}x ${i.Nombre} <span class="text-[10px] text-gray-400">(${i.Talla}/${i.Color})</span></span>
+                                <span class="font-bold">$${(i.Precio * i.cantidad).toLocaleString('es-CO')}</span>
                             </div>
                         `;
                     });
 
-                    // 2. Mostrar la ventana del Recibo en la pantalla
+                    // Mostrar modal de confirmación
                     document.getElementById('recibo-modal').classList.remove('hidden');
 
-                    // 3. Limpiar carrito y resetear el formulario
+                    // Resetear todo
                     carrito = [];
                     actualizarInterfazCarrito();
                     document.getElementById('checkout-form').reset();
                     toggleCarrito();
                 } else {
-                    alert("Error en el sistema: " + respuesta.error);
+                    alert("No se pudo procesar: " + respuesta.error);
                 }
                 
-                // Limpieza del proceso
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-check-circle text-lg"></i> Confirmar y Realizar Compra`;
+                btn.innerText = "Confirmar y Realizar Compra";
                 document.body.removeChild(script);
                 delete window[nombreFuncionRetorno];
             };
 
-            // Inyectar la solicitud a Google en tiempo real
             const script = document.createElement('script');
             script.src = CONFIG.URL_API + "?callback=" + nombreFuncionRetorno + "&datos=" + encodeURIComponent(JSON.stringify(datosPedido));
             document.body.appendChild(script);
