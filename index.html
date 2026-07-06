@@ -215,49 +215,50 @@
             let colorOpciones = colores.map(c => `<option value="${c}">${c}</option>`).join('');
 
             let estructuraPrecio = esDescuento 
-                ? `<div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                     <span class="text-base sm:text-xl font-black text-red-600">$${Number(precioMostrar).toLocaleString('es-CO')}</span>
-                     <span class="text-xs sm:text-sm text-gray-400 line-through">$${Number(precioOriginalTachado).toLocaleString('es-CO')}</span>
+                ? `<div class="flex items-center gap-1 mt-0.5 flex-wrap">
+                     <span class="text-sm sm:text-lg font-black text-red-600">$${Number(precioMostrar).toLocaleString('es-CO')}</span>
+                     <span class="text-[10px] sm:text-xs text-gray-400 line-through">$${Number(precioOriginalTachado).toLocaleString('es-CO')}</span>
                    </div>`
-                : `<p class="text-base sm:text-xl font-black text-gray-900 mt-1">$${Number(precioMostrar).toLocaleString('es-CO')}</p>`;
+                : `<p class="text-sm sm:text-lg font-black text-gray-900 mt-0.5">$${Number(precioMostrar).toLocaleString('es-CO')}</p>`;
 
             let idSafe = nombre.replace(/[^a-zA-Z0-9]/g, '-');
+            let descripcionTexto = principal.Descripción || principal['Descripción'] || '';
             
-            // Construcción dinámica de los controles de imagen cuando existe Imagen_URL2
-            let selectorImagenes = '';
+            // Botón ergonómico en la esquina superior derecha para cambiar de imagen cómodamente en móviles
+            let botonCambiarImagen = '';
             if (principal.Imagen_URL2 && principal.Imagen_URL2.trim() !== '' && principal.Imagen_URL2 !== 'undefined') {
-                selectorImagenes = `
-                    <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-10 bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm">
-                        <button onclick="cambiarImagenCard('${idSafe}', '${principal.Imagen_URL}', event)" class="w-2 h-2 rounded-full bg-white ring-2 ring-black transition-all"></button>
-                        <button onclick="cambiarImagenCard('${idSafe}', '${principal.Imagen_URL2}', event)" class="w-2 h-2 rounded-full bg-white/50 transition-all"></button>
-                    </div>
+                botonCambiarImagen = `
+                    <button onclick="cambiarImagenCard('${idSafe}', '${principal.Imagen_URL}', '${principal.Imagen_URL2}', event)" class="absolute top-2 right-2 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm z-20 shadow active:scale-95 transition-transform text-xs">
+                        <i class="fas fa-images"></i>
+                    </button>
                 `;
             }
 
             return `
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition flex flex-col relative">
                     <div id="container-img-${idSafe}" class="overflow-hidden cursor-zoom-in relative" onclick="abrirZoom(this.getAttribute('data-img'))" data-img="${principal.Imagen_URL}">
-                        <img id="img-${idSafe}" src="${principal.Imagen_URL}" alt="${nombre}" class="w-full h-44 sm:h-64 object-cover bg-gray-50 hover:scale-105 transition-transform duration-500">
-                        ${selectorImagenes}
+                        <img id="img-${idSafe}" src="${principal.Imagen_URL}" data-active="1" alt="${nombre}" class="w-full h-40 sm:h-64 object-cover bg-gray-50 hover:scale-105 transition-transform duration-500">
+                        ${botonCambiarImagen}
                     </div>
-                    <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+                    <div class="p-2.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2">
                         <div>
-                            <span class="text-[9px] sm:text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">${principal.Categoria}</span>
-                            <h4 class="font-bold text-xs sm:text-base mt-1.5 text-gray-800 tracking-tight line-clamp-2 min-h-[2rem] sm:min-h-normal">${nombre}</h4>
+                            <span class="text-[8px] sm:text-[9px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded uppercase tracking-wider">${principal.Categoria}</span>
+                            <h4 class="font-bold text-xs sm:text-base mt-1 text-gray-800 tracking-tight line-clamp-1">${nombre}</h4>
+                            <p class="text-[10px] sm:text-xs text-gray-500 line-clamp-2 mt-0.5 leading-tight min-h-[2rem] sm:min-h-normal">${descripcionTexto}</p>
                             ${estructuraPrecio}
                         </div>
-                        <div class="space-y-2 mt-3">
-                            <div class="flex gap-1.5 text-[11px] sm:text-xs">
+                        <div class="space-y-1.5">
+                            <div class="flex gap-1 text-[10px] sm:text-xs">
                                 <div class="w-1/2">
-                                    <label class="block text-gray-400 mb-0.5 text-[9px] font-bold uppercase">Talla:</label>
-                                    <select id="talla-${nombre.replace(/\s+/g, '-')}" class="w-full p-1.5 border rounded-lg bg-gray-50 outline-none text-xs focus:border-gray-400">${tallaOpciones}</select>
+                                    <label class="block text-gray-400 mb-0.5 text-[8px] font-bold uppercase">Talla:</label>
+                                    <select id="talla-${nombre.replace(/\s+/g, '-')}" class="w-full p-1 border rounded-lg bg-gray-50 outline-none text-[11px] focus:border-gray-400">${tallaOpciones}</select>
                                 </div>
                                 <div class="w-1/2">
-                                    <label class="block text-gray-400 mb-0.5 text-[9px] font-bold uppercase">Color:</label>
-                                    <select id="color-${nombre.replace(/\s+/g, '-')}" class="w-full p-1.5 border rounded-lg bg-gray-50 outline-none text-xs focus:border-gray-400">${colorOpciones}</select>
+                                    <label class="block text-gray-400 mb-0.5 text-[8px] font-bold uppercase">Color:</label>
+                                    <select id="color-${nombre.replace(/\s+/g, '-')}" class="w-full p-1 border rounded-lg bg-gray-50 outline-none text-[11px] focus:border-gray-400">${colorOpciones}</select>
                                 </div>
                             </div>
-                            <button onclick="agregarAlCarrito(this.getAttribute('data-nombre'))" data-nombre="${nombre}" class="w-full bg-principal hover:bg-black text-white font-bold py-2 rounded-xl transition text-[11px] sm:text-xs uppercase tracking-wider">
+                            <button onclick="agregarAlCarrito(this.getAttribute('data-nombre'))" data-nombre="${nombre}" class="w-full bg-principal hover:bg-black text-white font-bold py-2 rounded-xl transition text-[10px] sm:text-xs uppercase tracking-wider">
                                 Agregar
                             </button>
                         </div>
@@ -278,7 +279,7 @@
                 const tallas = [...new Set(variantes.map(v => v.Talla))];
                 const colores = [...new Set(variantes.map(v => v.Color))];
 
-                let categoriasArray = principal.Categoria.split(',').map(c => c.trim().toLowerCase());
+                let categoriasArray = principal.Categoria ? principal.Categoria.split(',').map(c => c.trim().toLowerCase()) : [];
 
                 let tieneDescuentoCelda = principal.Descuento && Number(principal.Descuento) > 0;
                 let precioFinal = tieneDescuentoCelda ? Number(principal.Descuento) : Number(principal.Precio);
@@ -386,7 +387,6 @@
             document.getElementById('carrito-panel').classList.toggle('hidden');
         }
 
-        // FUNCIONES DEL ZOOM COMPATIBLES CON CAMBIO DINÁMICO
         function abrirZoom(url) {
             const modal = document.getElementById('zoom-modal');
             const img = document.getElementById('zoom-img');
@@ -400,27 +400,26 @@
             document.getElementById('zoom-img').src = '';
         }
 
-        // CONTROLADOR DE CAMBIO DE IMAGEN EN LA CARD (INMUNE A BUGS DE DESPLAZAMIENTO)
-        function cambiarImagenCard(idSafe, url, event) {
-            event.stopPropagation(); // Evita que se abra el zoom inmediatamente al tocar el punto selector
+        // CONTROLADOR DE CAMBIO DE IMAGEN MEJORADO PARA PANTALLAS TÁCTILES
+        function cambiarImagenCard(idSafe, img1, img2, event) {
+            event.stopPropagation(); // Evita que se dispare el modal de zoom por accidente
             const container = document.getElementById(`container-img-${idSafe}`);
             const img = document.getElementById(`img-${idSafe}`);
-            if (img && container) {
-                img.src = url;
-                container.setAttribute('data-img', url); // Actualiza la imagen activa para el zoom del celular
+            if (!img || !container) return;
+
+            let activa = img.getAttribute('data-active') || "1";
+            if (activa === "1") {
+                img.src = img2;
+                img.setAttribute('data-active', "2");
+                container.setAttribute('data-img', img2); // Actualiza la referencia del Zoom
+            } else {
+                img.src = img1;
+                img.setAttribute('data-active', "1");
+                container.setAttribute('data-img', img1); // Actualiza la referencia del Zoom
             }
-            
-            // Actualización visual de los botones indicadores
-            const dots = event.target.parentElement.children;
-            for (let dot of dots) {
-                dot.classList.remove('ring-2', 'ring-black', 'bg-white');
-                dot.classList.add('bg-white/50');
-            }
-            event.target.classList.remove('bg-white/50');
-            event.target.classList.add('bg-white', 'ring-2', 'ring-black');
         }
 
-        // CONTROLADOR DE CONEXIÓN DE RED
+        // REGISTRO DE COMPRA CON ID PRE-SINCRONIZADO
         async function procesarCompra(event) {
             event.preventDefault();
             if(carrito.length === 0) return alert("La bolsa está vacía.");
@@ -440,6 +439,10 @@
             btn.disabled = true;
             btn.innerText = "Registrando orden...";
 
+            // Generamos el ID único en el Front-End para enviarlo a Sheets y asegurar consistencia absoluta
+            const numeroUnico = Math.floor(1000 + Math.random() * 9000);
+            const idPedidoSincronizado = "PED-" + numeroUnico;
+
             let resumenProductos = carrito.map(i => `${i.cantidad}x ${i.Nombre} (${i.Talla}/${i.Color})`).join(' | ');
             let totalPedido = carrito.reduce((acc, i) => acc + (i.Precio * i.cantidad), 0);
 
@@ -450,6 +453,7 @@
             };
 
             const datosPedido = {
+                idPedido: idPedidoSincronizado, // Se envía directamente al Apps Script
                 nombre: limpiarTextoSeguro(document.getElementById('nombre').value),
                 direccion: limpiarTextoSeguro(document.getElementById('direccion').value),
                 ciudad: limpiarTextoSeguro(document.getElementById('ciudad').value),
@@ -463,7 +467,8 @@
             const formData = new URLSearchParams();
             formData.append('datos', JSON.stringify(datosPedido));
 
-            document.getElementById('recibo-id').innerText = "Guardando...";
+            // Inyectamos el ID idéntico en el recibo del cliente
+            document.getElementById('recibo-id').innerText = idPedidoSincronizado;
             document.getElementById('recibo-cliente').innerText = datosPedido.nombre;
             document.getElementById('recibo-destino').innerText = `${datosPedido.ciudad}, ${datosPedido.departamento}`;
             document.getElementById('recibo-pago').innerText = datosPedido.metodoPago;
@@ -487,9 +492,6 @@
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: formData
                 });
-
-                const marcaTiempoUnica = "PED-" + Math.floor(Date.now() / 100000).toString().slice(-4);
-                document.getElementById('recibo-id').innerText = marcaTiempoUnica;
 
                 document.getElementById('recibo-modal').classList.remove('hidden');
 
