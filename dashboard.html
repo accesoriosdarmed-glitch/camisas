@@ -334,6 +334,68 @@
         }
 
         window.onload = inicializarDashboard;
+        // Dentro de tu bucle map o forEach donde construyes las tarjetas de producto en el index.html:
+// Usa esta estructura HTML para cada card:
+
+const tarjetaProductoHTML = `
+  <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col justify-between group">
+      
+      <div class="relative w-full h-72 rounded-xl overflow-hidden bg-gray-50 cursor-crosshair" 
+           onmousemove="efectoZoomIn(event)" 
+           onmouseleave="resetearZoom(event)">
+           
+          <img src="${producto.Imagen_URL}" 
+               alt="${producto.Producto_Nombre}" 
+               class="imagen-principal absolute inset-0 w-full h-full object-cover transition-all duration-300 origin-center group-hover:opacity-0" />
+          
+          <img src="${producto.Imagen_URL2 ? producto.Imagen_URL2 : producto.Imagen_URL}" 
+               alt="${producto.Producto_Nombre} vista alternativa" 
+               class="imagen-secundaria absolute inset-0 w-full h-full object-cover transition-all duration-300 origin-center opacity-0 group-hover:opacity-100" />
+               
+          ${producto.Imagen_URL2 ? `
+            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="w-1.5 h-1.5 rounded-full bg-white/40 group-hover:bg-white/90"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-white/40 group-hover:bg-white/50"></span>
+            </div>
+          ` : ''}
+      </div>
+
+      <div class="mt-4 space-y-1">
+          <span class="text-[10px] uppercase font-bold tracking-wider text-gray-400">${producto.Categoria}</span>
+          <h3 class="font-black text-gray-900 text-base leading-tight">${producto.Producto_Nombre}</h3>
+          <div class="flex items-center justify-between pt-1">
+              <span class="font-black text-gray-950 text-base">$${Number(producto.Precio).toLocaleString('es-CO')}</span>
+              <button onclick="agregarAlCarrito('${producto.SKU}')" class="bg-principal hover:bg-black text-white text-xs font-bold px-3 py-2 rounded-xl transition">
+                  Agregar
+              </button>
+          </div>
+      </div>
+  </div>
+`;
+        function efectoZoomIn(e) {
+    // Detectamos cuál imagen está visible en el contenedor (la secundaria si está en hover)
+    const contenedor = e.currentTarget;
+    const imagenVisible = contenedor.querySelector('.imagen-secundaria').style.opacity === '1' 
+        ? contenedor.querySelector('.imagen-secundaria') 
+        : contenedor.querySelector('.imagen-principal');
+
+    const rect = contenedor.getBoundingClientRect();
+    
+    // Calcular la posición del cursor en porcentaje dentro de la imagen
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // Aplicar escala y mover el origen de transformación al punto del cursor
+    imagenVisible.style.transformOrigin = `${x}% ${y}%`;
+    imagenVisible.style.transform = "scale(1.6)";
+}
+
+function resetearZoom(e) {
+    const contenedor = e.currentTarget;
+    // Apagar escala en ambas imágenes al sacar el puntero
+    contenedor.querySelector('.imagen-principal').style.transform = "scale(1)";
+    contenedor.querySelector('.imagen-secundaria').style.transform = "scale(1)";
+}
     </script>
 </body>
 </html>
