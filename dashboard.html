@@ -26,21 +26,43 @@
     <header class="bg-principal text-white shadow-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-lg font-black tracking-widest uppercase">Origen Lab <span class="text-secundario text-xs font-normal">| Panel de Control</span></h1>
-            <button onclick="inicializarDashboard()" class="bg-white/10 text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-white/20 transition flex items-center gap-2">
-                <i class="fas fa-sync-alt"></i> Actualizar Datos
-            </button>
+            <div class="flex items-center gap-2">
+                <span id="indicador-rango" class="text-xs bg-white/10 px-3 py-1.5 rounded-lg font-medium text-gray-300">Esta Semana</span>
+                <button onclick="inicializarDashboard()" class="bg-secundario text-principal px-4 py-2 rounded-full text-xs font-bold hover:bg-white transition flex items-center gap-2">
+                    <i class="fas fa-sync-alt"></i> Sincronizar
+                </button>
+            </div>
         </div>
     </header>
 
-    <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+        
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2 text-xs font-bold uppercase text-gray-500">
+                <i class="fas fa-calendar-alt text-base text-principal"></i> Rango de Métricas y Órdenes:
+            </div>
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <div class="flex items-center gap-1.5 text-xs">
+                    <span class="text-gray-400 font-medium">Desde:</span>
+                    <input type="date" id="fecha-desde" onchange="aplicarFiltroFechasManual()" class="p-2 border rounded-xl outline-none text-xs font-bold">
+                </div>
+                <div class="flex items-center gap-1.5 text-xs">
+                    <span class="text-gray-400 font-medium">Hasta:</span>
+                    <input type="date" id="fecha-hasta" onchange="aplicarFiltroFechasManual()" class="p-2 border rounded-xl outline-none text-xs font-bold">
+                </div>
+                <button onclick="configurarSemanaActual()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-2 rounded-xl text-xs transition">
+                    Esta Semana
+                </button>
+            </div>
+        </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ingresos Totales</p>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ventas Facturadas</p>
                 <h3 id="meta-ingresos" class="text-2xl font-black text-gray-900 mt-1">$0</h3>
             </div>
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Pedidos Activos</p>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Órdenes</p>
                 <h3 id="meta-activos" class="text-2xl font-black text-amber-600 mt-1">0</h3>
             </div>
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
@@ -49,7 +71,7 @@
             </div>
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Día Más Fuerte</p>
-                <h3 id="meta-dia" class="text-xl font-black text-gray-800 mt-1">---</h3>
+                <h3 id="meta-dia" class="text-sm font-black text-gray-800 mt-2 truncate">---</h3>
             </div>
         </div>
 
@@ -68,33 +90,70 @@
         </div>
 
         <div>
-            <h3 class="text-base font-black uppercase tracking-wider mb-4 text-gray-800 flex items-center gap-2">
-                <span class="w-2 h-4 bg-principal rounded-full"></span> Órdenes de Compra
+            <h3 class="text-sm font-black uppercase tracking-wider mb-4 text-gray-800 flex items-center gap-2">
+                <span class="w-2 h-4 bg-principal rounded-full"></span> Panel de Tarjetas Activas
             </h3>
-            
-            <div id="contenedor-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                </div>
+            <div id="contenedor-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
     </div>
 
     <script>
         const CONFIG = {
-            URL_API: 'https://script.google.com/macros/s/AKfycbwvICuQ5Z0NAwFSGwOJJ0YxYUmf7C0K4OOWSN8DqtV3DG4RcpfVd26aPfcUcwqlCqd1/exec' // Pon la misma URL de Apps Script de tu tienda
+            URL_API: 'TU_NUEVA_URL_DE_APPS_SCRIPT' // <- PEGA AQUÍ TU URL ACTUALIZADA
         };
 
-        let todosLosPedidos = [];
+        let pedidosMapeadosLocales = [];
         let estadoFiltroActual = 'Todos';
 
-        async function inicializarDashboard() {
-            const contenedor = document.getElementById('contenedor-cards');
-            contenedor.innerHTML = `<div class="col-span-full text-center py-12"><i class="fas fa-spinner fa-spin text-2xl text-principal mb-2"></i><p class="text-sm">Cargando base de datos...</p></div>`;
+        function configurarSemanaActual() {
+            document.getElementById('indicador-rango').innerText = "Esta Semana (Lun - Dom)";
             
-            const nombreFuncion = "dashCallback_" + Math.round(Math.random() * 100000);
-            window[nombreFuncion] = function(datos) {
-                todosLosPedidos = datos.reverse(); // Los más nuevos primero de entrada
-                calcularMetricas(todosLosPedidos);
-                renderizarCards(todosLosPedidos);
+            const hoy = new Date();
+            const diaSemana = hoy.getDay(); 
+            const diferenciaLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+            
+            const lunes = new Date(hoy);
+            lunes.setDate(hoy.getDate() + diferenciaLunes);
+            const domingo = new Date(lunes);
+            domingo.setDate(lunes.getDate() + 6);
+            
+            document.getElementById('fecha-desde').value = lunes.toISOString().split('T')[0];
+            document.getElementById('fecha-hasta').value = domingo.toISOString().split('T')[0];
+            
+            if(pedidosMapeadosLocales.length > 0) filtrarPedidos();
+        }
+
+        function aplicarFiltroFechasManual() {
+            document.getElementById('indicador-rango').innerText = "Rango Personalizado";
+            filtrarPedidos();
+        }
+
+        async function inicializarDashboard() {
+            if(!document.getElementById('fecha-desde').value) configurarSemanaActual();
+            
+            const contenedor = document.getElementById('contenedor-cards');
+            contenedor.innerHTML = `<div class="col-span-full text-center py-12"><i class="fas fa-spinner fa-spin text-2xl text-principal mb-2"></i><p class="text-sm font-bold">Cargando base de datos segura...</p></div>`;
+            
+            const nombreFuncion = "origenLabDash_" + Math.round(Math.random() * 100000);
+            window[nombreFuncion] = function(datosRaw) {
+                // SE CORRIGEN LOS UNDEFINED: MAPEO EXACTO CON LAS CABECERAS REALES DE TU EXCEL
+                pedidosMapeadosLocales = datosRaw.map(p => {
+                    return {
+                        id: p.Pedido_ID || 'Sin ID',
+                        fecha: p.Fecha || '',
+                        cliente: p.Cliente_Nombre || 'Cliente Anónimo',
+                        direccion: p.Direccion || '',
+                        ciudad: p.Ciudad || '',
+                        whatsapp: p.Whatsapp ? p.Whatsapp.toString().trim() : '',
+                        pago: p.Metodo_Pago || '',
+                        productos: p.Productos_Detalle || 'Detalle no registrado',
+                        total: Number(p.Total) || 0,
+                        estado: p.Estado ? p.Estado.toString().trim() : 'Pendiente'
+                    };
+                });
+
+                filtrarPedidos();
                 document.body.removeChild(script);
                 delete window[nombreFuncion];
             };
@@ -104,93 +163,115 @@
             document.body.appendChild(script);
         }
 
-        function calcularMetricas(pedidos) {
+        function filtrarPedidos() {
+            let busqueda = document.getElementById('buscador').value.toLowerCase().trim();
+            let desde = new Date(document.getElementById('fecha-desde').value + "T00:00:00");
+            let hasta = new Date(document.getElementById('fecha-hasta').value + "T23:59:59");
+
+            // 1. Filtrado temporal por Fechas (Afecta métricas altas)
+            let filtradosPorFecha = pedidosMapeadosLocales.filter(p => {
+                if(!p.fecha) return false;
+                let fechaPedido = new Date(p.fecha);
+                return fechaPedido >= desde && fechaPedido <= hasta;
+            });
+
+            actualizarMetricasEstructurales(filtradosPorFecha);
+
+            // 2. Filtrado secundario por buscador textual y estado de botón
+            let muestraFinal = filtradosPorFecha.filter(p => {
+                let cumpleEstado = (estadoFiltroActual === 'Todos') || (p.estado === estadoFiltroActual);
+                let cumpleBusqueda = !busqueda || 
+                                     p.id.toLowerCase().includes(busqueda) ||
+                                     p.cliente.toLowerCase().includes(busqueda) ||
+                                     p.whatsapp.includes(busqueda);
+                return cumpleEstado && cumpleBusqueda;
+            });
+
+            renderizarCardsEstructurales(muestraFinal);
+        }
+
+        function actualizarMetricasEstructurales(pedidos) {
             let ingresos = 0;
-            let activos = 0;
-            let diasConteo = {};
+            let conteoDias = {};
 
             pedidos.forEach(p => {
-                let total = Number(p.Total_Cobrado) || 0;
-                ingresos += total;
-                if(p.Estado !== 'Finalizado') activos++;
-
-                // Extraer día de la fecha
-                if(p.Fecha) {
-                    let d = p.Fecha.split("T")[0] || p.Fecha.substring(0,10);
-                    diasConteo[d] = (diasConteo[d] || 0) + 1;
+                ingresos += p.total;
+                if(p.fecha) {
+                    let diaIso = p.fecha.split("T")[0] || p.fecha.substring(0,10);
+                    conteoDias[diaIso] = (conteoDias[diaIso] || 0) + 1;
                 }
             });
 
             let diaMasVentas = "---";
             let maxVentas = 0;
-            for(let dia in diasConteo) {
-                if(diasConteo[dia] > maxVentas) {
-                    maxVentas = diasConteo[dia];
+            for(let dia in conteoDias) {
+                if(conteoDias[dia] > maxVentas) {
+                    maxVentas = conteoDias[dia];
                     diaMasVentas = dia;
                 }
             }
 
             document.getElementById('meta-ingresos').innerText = `$${ingresos.toLocaleString('es-CO')}`;
-            document.getElementById('meta-activos').innerText = activos;
+            document.getElementById('meta-activos').innerText = pedidos.length;
             document.getElementById('meta-ticket').innerText = pedidos.length ? `$${Math.round(ingresos / pedidos.length).toLocaleString('es-CO')}` : "$0";
             document.getElementById('meta-dia').innerText = diaMasVentas;
         }
 
-        function renderizarCards(pedidos) {
+        function renderizarCardsEstructurales(pedidos) {
             const contenedor = document.getElementById('contenedor-cards');
             contenedor.innerHTML = '';
 
-            // Clasificación: Los finalizados siempre van al fondo automáticamente
-            let activos = pedidos.filter(p => p.Estado !== 'Finalizado');
-            let finalizados = pedidos.filter(p => p.Estado === 'Finalizado');
+            // ORDEN LOGICO: Activos arriba, finalizados se van al fondo automáticamente
+            let activos = pedidos.filter(p => p.estado !== 'Finalizado');
+            let finalizados = pedidos.filter(p => p.estado === 'Finalizado');
             let listaOrdenada = [...activos, ...finalizados];
 
             if(listaOrdenada.length === 0) {
-                contenedor.innerHTML = `<p class="col-span-full text-center py-8 text-sm text-gray-500">No se encontraron pedidos con los criterios seleccionados.</p>`;
+                contenedor.innerHTML = `<p class="col-span-full text-center py-12 text-xs font-bold text-gray-500 bg-white rounded-2xl border">Ninguna orden coincide con este criterio.</p>`;
                 return;
             }
 
             listaOrdenada.forEach(p => {
                 let colorEstado = 'bg-gray-100 text-gray-800';
-                if(p.Estado === 'Pendiente') colorEstado = 'bg-amber-100 text-amber-800 border border-amber-300';
-                if(p.Estado === 'En Proceso') colorEstado = 'bg-blue-100 text-blue-800 border border-blue-300';
-                if(p.Estado === 'Pendiente de Pago') colorEstado = 'bg-purple-100 text-purple-800 border border-purple-300';
-                if(p.Estado === 'Finalizado') colorEstado = 'bg-green-100 text-green-800 opacity-75';
+                if(p.estado === 'Pendiente') colorEstado = 'bg-amber-100 text-amber-800 border border-amber-300';
+                if(p.estado === 'En Proceso') colorEstado = 'bg-blue-100 text-blue-800 border border-blue-300';
+                if(p.estado === 'Pendiente de Pago') colorEstado = 'bg-purple-100 text-purple-800 border border-purple-300';
+                if(p.estado === 'Finalizado') colorEstado = 'bg-green-100 text-green-800 opacity-60';
 
                 const card = `
-                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex flex-col justify-between space-y-4 transition hover:shadow-md ${p.Estado === 'Finalizado' ? 'bg-gray-50/50' : ''}">
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 flex flex-col justify-between space-y-4 ${p.estado === 'Finalizado' ? 'bg-gray-50/60' : ''}">
                         <div class="space-y-2">
                             <div class="flex justify-between items-start">
-                                <span class="text-xs font-black text-gray-400 tracking-wider">${p.ID_Pedido}</span>
-                                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${colorEstado}">${p.Estado || 'Pendiente'}</span>
+                                <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">${p.id}</span>
+                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${colorEstado}">${p.estado}</span>
                             </div>
                             <div>
-                                <h4 class="font-black text-base text-gray-950">${p.Cliente_Nombre}</h4>
-                                <p class="text-xs text-gray-500"><i class="fas fa-map-marker-alt text-gray-400"></i> ${p.Ciudad} - ${p.Direccion_Residencia}</p>
+                                <h4 class="font-black text-base text-gray-950 tracking-tight">${p.cliente}</h4>
+                                <p class="text-xs text-gray-500 mt-0.5"><i class="fas fa-map-marker-alt text-gray-400"></i> ${p.ciudad} • ${p.direccion}</p>
                             </div>
                             <div class="bg-secundario/30 p-3 rounded-xl border border-gray-100">
-                                <p class="text-xs font-medium text-gray-800 leading-relaxed">${p.Productos_Detalle ? p.Productos_Detalle.replace(/\|/g, '<br>• ') : 'Sin detalle'}</p>
+                                <p class="text-xs font-bold text-gray-800 leading-relaxed">${p.productos.replace(/\|/g, '<br>• ')}</p>
                             </div>
                         </div>
 
                         <div class="space-y-3 pt-2 border-t">
                             <div class="flex justify-between items-center">
-                                <span class="text-xs font-medium text-gray-400 uppercase">Monto total</span>
-                                <span class="font-black text-gray-900">$${(Number(p.Total_Cobrado) || 0).toLocaleString('es-CO')}</span>
+                                <span class="text-xs font-bold text-gray-400 uppercase">Cobrado</span>
+                                <span class="font-black text-gray-900 text-base">$${p.total.toLocaleString('es-CO')}</span>
                             </div>
 
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="block text-[9px] font-black text-gray-400 uppercase mb-1">Cambiar Estado</label>
-                                    <select onchange="cambiarEstadoPedido('${p.ID_Pedido}', this.value)" class="w-full text-xs p-2 border rounded-lg bg-gray-50 font-bold outline-none">
-                                        <option value="Pendiente" ${p.Estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                                        <option value="En Proceso" ${p.Estado === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
-                                        <option value="Pendiente de Pago" ${p.Estado === 'Pendiente de Pago' ? 'selected' : ''}>Pendiente de Pago</option>
-                                        <option value="Finalizado" ${p.Estado === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                                    <label class="block text-[9px] font-black text-gray-400 uppercase mb-1">Estado</label>
+                                    <select onchange="cambiarEstadoPedido('${p.id}', this.value)" class="w-full text-xs p-2 border rounded-lg bg-gray-50 font-bold outline-none cursor-pointer focus:border-principal">
+                                        <option value="Pendiente" ${p.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                        <option value="En Proceso" ${p.estado === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
+                                        <option value="Pendiente de Pago" ${p.estado === 'Pendiente de Pago' ? 'selected' : ''}>Pendiente de Pago</option>
+                                        <option value="Finalizado" ${p.estado === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
                                     </select>
                                 </div>
                                 <div class="flex items-end">
-                                    <button onclick="notificarWhatsApp('${p.Cliente_Nombre}', '${p.Whatsapp}', '${p.Estado}', '${p.ID_Pedido}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm">
+                                    <button onclick="notificarWhatsApp('${p.id}')" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1.5 transition">
                                         <i class="fab fa-whatsapp text-sm"></i> Notificar
                                     </button>
                                 </div>
@@ -202,68 +283,53 @@
             });
         }
 
-        async function cambiarEstadoPedido(id, nuevoEstado) {
-            try {
-                // Envío asíncrono directo al script modificado
-                await fetch(CONFIG.URL_API, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ accion: "actualizarEstado", pedidoId: id, nuevoEstado: nuevoEstado })
-                });
-                
-                // Actualizar la memoria local para no tener que refrescar toda la base de datos
-                let ped = todosLosPedidos.find(p => p.ID_Pedido === id);
-                if(ped) ped.Estado = nuevoEstado;
-                
-                calcularMetricas(todosLosPedidos);
-                filtrarPedidos();
-            } catch (e) {
-                alert("Error al guardar estado en Google Sheets.");
-            }
+        function cambiarEstadoPedido(id, nuevoEstado) {
+            const nombreFuncionEscribir = "origenLabWrite_" + Math.round(Math.random() * 100000);
+            
+            window[nombreFuncionEscribir] = function(res) {
+                if(res.success) {
+                    let item = pedidosMapeadosLocales.find(p => p.id === id);
+                    if(item) item.estado = nuevoEstado;
+                    filtrarPedidos();
+                } else {
+                    alert("Error al actualizar la celda en Sheets.");
+                }
+                document.body.removeChild(script);
+                delete window[nombreFuncionEscribir];
+            };
+
+            const script = document.createElement('script');
+            script.src = CONFIG.URL_API + `?accion=actualizarEstado&pedidoId=${encodeURIComponent(id)}&nuevoEstado=${encodeURIComponent(nuevoEstado)}&callback=${nombreFuncionEscribir}`;
+            document.body.appendChild(script);
         }
 
-        function notificarWhatsApp(nombre, cel, estado, id) {
+        function notificarWhatsApp(id) {
+            // SE CORRIGE WHATSAPP: Busca el estado real actual en memoria para enviar el texto correcto
+            let p = pedidosMapeadosLocales.find(item => item.id === id);
+            if(!p) return;
+            
             let msg = "";
-            if (estado === "Pendiente") {
-                msg = `¡Hola ${nombre}! Recibimos tu pedido con el código *${id}* en Origen Lab. Ya quedó registrado y está en cola de revisión médica y logística. ¡Gracias por confiar en nosotros!`;
-            } else if (estado === "En Proceso") {
-                msg = `¡Buenas noticias, ${nombre}! Tu pedido *${id}* ya entró a taller de estampado y empaque. Muy pronto te daremos novedades sobre tu guía de envío.`;
-            } else if (estado === "Pendiente de Pago") {
-                msg = `Hola ${nombre}, te escribimos de Origen Lab. Tenemos listo tu pedido *${id}*, quedamos atentos al comprobante de transferencia para proceder con el despacho.`;
-            } else if (estado === "Finalizado") {
-                msg = `¡Hola ${nombre}! Tu pedido *${id}* ya fue entregado por completo. Queríamos pasar a saludarte y saber cómo te fue con la prenda. ¿Te gustó el tallaje y el estampado? Tu retroalimentación nos ayuda muchísimo a seguir mejorando en Origen Lab. 🙌👕`;
+            if (p.estado === "Pendiente") {
+                msg = `¡Hola ${p.cliente}! Recibimos tu pedido con el código *${p.id}* en Origen Lab. Ya quedó registrado y está en cola de revisión logística. ¡Muchas gracias por tu compra!`;
+            } else if (p.estado === "En Proceso") {
+                msg = `¡Buenas noticias, ${p.cliente}! Tu pedido *${p.id}* ya entró a taller de estampado y empaque. Muy pronto te daremos novedades sobre tu guía de despacho. 👕⚡`;
+            } else if (p.estado === "Pendiente de Pago") {
+                msg = `Hola ${p.cliente}, te escribimos de Origen Lab. Tenemos listo tu pedido *${p.id}*, quedamos muy atentos al comprobante de transferencia para proceder con el despacho hoy mismo.`;
+            } else if (p.estado === "Finalizado") {
+                msg = `¡Hola ${p.cliente}! Tu pedido *${p.id}* ya figura como entregado. Queríamos saludarte y saber cómo te fue con las prendas. ¿Te gustó el tallaje y la calidad del estampado? Tu respuesta nos ayuda un montón a seguir mejorando en Origen Lab. 🙌👕`;
             }
 
-            window.open(`https://api.whatsapp.com/send?phone=57${cel}&text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function filtrarPedidos() {
-            let busqueda = document.getElementById('buscador').value.toLowerCase().trim();
-            
-            let filtrados = todosLosPedidos.filter(p => {
-                let cumpleEstado = (estadoFiltroActual === 'Todos') || (p.Estado === estadoFiltroActual);
-                let cumpleBusqueda = !busqueda || 
-                                     (p.ID_Pedido && p.ID_Pedido.toLowerCase().includes(busqueda)) ||
-                                     (p.Cliente_Nombre && p.Cliente_Nombre.toLowerCase().includes(busqueda)) ||
-                                     (p.Whatsapp && p.Whatsapp.includes(busqueda));
-                return cumpleEstado && cumpleBusqueda;
-            });
-            
-            renderizarCards(filtrados);
+            window.open(`https://api.whatsapp.com/send?phone=57${p.whatsapp}&text=${encodeURIComponent(msg)}`, '_blank');
         }
 
         function filtrarPorEstado(estado) {
             estadoFiltroActual = estado;
-            
-            // Estilos estéticos de los botones de filtro
             document.querySelectorAll('.filtro-btn').forEach(btn => {
                 btn.classList.replace('bg-principal', 'bg-gray-100');
                 btn.classList.replace('text-white', 'text-gray-600');
             });
             event.target.classList.replace('bg-gray-100', 'bg-principal');
             event.target.classList.replace('text-gray-600', 'text-white');
-            
             filtrarPedidos();
         }
 
